@@ -1210,13 +1210,13 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
                     accum = strdup(buf);
                 } else {
                     char* new_accum = malloc(strlen(accum) + count + 2);
-                    sprintf(new_accum, "%s%s", accum, buf);
+                    sprintf(new_accum, "%s\n%s", accum, buf);
                     free(accum);
                     accum = new_accum;
                 }
                 already_read = get_next_char();
                 if (already_read) {
-                    current_prompt = ".        => ";
+                    current_prompt = "       #_.> ";
                     printf("\n");
                     done = 0;
                 }
