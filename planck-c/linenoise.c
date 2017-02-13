@@ -117,6 +117,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "linenoise.h"
 #include "clock.h"
 
@@ -787,7 +788,7 @@ static void set_current(struct linenoiseState *current, const char *str) {
  * when ctrl+d is typed.
  *
  * The function returns the length of the current buffer. */
-static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt, int spaces) {
+static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt, int spaces, char already_read) {
     struct linenoiseState l;
 
     /* Populate the linenoise state that we pass to functions implementing
@@ -828,7 +829,12 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         int nread;
         char seq[3];
 
-        nread = read(l.ifd, &c, 1);
+        if (already_read) {
+            c = already_read;
+            already_read = 0;
+        } else {
+            nread = read(l.ifd, &c, 1);
+        }
         if (c != keymap[KM_ENTER] && c != '>') {  // Also check for '>' so we can catch pasting involving prompt
             lastCharRead = system_time();
         } else {
@@ -1152,29 +1158,73 @@ void linenoisePrintKeyCodes(void) {
     disableRawMode(STDIN_FILENO);
 }
 
+static char get_next_char() {
+    char c = 0;
+    int orig = fcntl(STDIN_FILENO, F_GETFL);
+    if (fcntl(STDIN_FILENO, F_SETFL, orig | O_NONBLOCK) == -1) {
+        fprintf(stderr, "Failed to set `O_NONBLOCK` on `STDIN_FILENO`\n");
+    }
+    ssize_t nread = read(STDIN_FILENO, &c, 1);
+    if (nread == -1) {
+        c = 0;
+    }
+    if (fcntl(STDIN_FILENO, F_SETFL, orig) == -1) {
+        fprintf(stderr, "Failed to turn off `O_NONBLOCK` on `STDIN_FILENO`\n");
+    }
+    return c;
+}
+
 /* This function calls the line editing function linenoiseEdit() using
  * the STDIN file descriptor set in raw mode. */
-static int linenoiseRaw(char *buf, size_t buflen, const char *prompt, int spaces) {
+static char* linenoiseRaw(const char *prompt, int spaces) {
     int count;
 
-    if (buflen == 0) {
-        errno = EINVAL;
-        return -1;
-    }
     if (!isatty(STDIN_FILENO)) {
         /* Not a tty: read from file / pipe. */
-        if (fgets(buf, buflen, stdin) == NULL) return -1;
+        char buf[LINENOISE_MAX_LINE];
+        if (fgets(buf, LINENOISE_MAX_LINE, stdin) == NULL) return -1;
         count = strlen(buf);
         if (count && buf[count - 1] == '\n') {
             count--;
             buf[count] = '\0';
         }
+        return strdup(buf);
     } else {
         /* Interactive editing. */
+
         if (enableRawMode(STDIN_FILENO) == -1) return -1;
-        count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, buflen, prompt, spaces);
+        char* accum = NULL;
+
+        char already_read = 0;
+        int done = 0;
+        char *current_prompt = prompt;
+        while (!done) {
+            char buf[LINENOISE_MAX_LINE];
+            count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, already_read);
+            done = 1;
+            if (count == -1) {
+                free(accum);
+                accum = NULL;
+            } else {
+                if (accum == NULL) {
+                    accum = strdup(buf);
+                } else {
+                    char* new_accum = malloc(strlen(accum) + count + 2);
+                    sprintf(new_accum, "%s%s", accum, buf);
+                    free(accum);
+                    accum = new_accum;
+                }
+                already_read = get_next_char();
+                if (already_read) {
+                    current_prompt = ".        => ";
+                    printf("\n");
+                    done = 0;
+                }
+            }
+        }
         disableRawMode(STDIN_FILENO);
         printf("\n");
+        return accum;
     }
     return count;
 }
@@ -1213,9 +1263,7 @@ char *linenoise(const char *prompt, const char *promptAnsiCode, int spaces) {
         return strdup(buf);
     } else {
         currentPromptAnsiCode = promptAnsiCode;
-        count = linenoiseRaw(buf, LINENOISE_MAX_LINE, prompt, spaces);
-        if (count == -1) return NULL;
-        return strdup(buf);
+        return linenoiseRaw(prompt, spaces);
     }
 }
 
