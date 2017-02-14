@@ -1171,6 +1171,7 @@ static char get_next_char() {
     if (fcntl(STDIN_FILENO, F_SETFL, orig) == -1) {
         fprintf(stderr, "Failed to turn off `O_NONBLOCK` on `STDIN_FILENO`\n");
     }
+    errno = 0;
     return c;
 }
 
@@ -1192,7 +1193,10 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
     } else {
         /* Interactive editing. */
 
-        if (enableRawMode(STDIN_FILENO) == -1) return -1;
+        if (enableRawMode(STDIN_FILENO) == -1) {
+            return NULL; // TODO handle better?
+        }
+
         char* accum = NULL;
 
         char already_read = 0;
@@ -1201,6 +1205,7 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
         while (!done) {
             char buf[LINENOISE_MAX_LINE];
             count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, already_read);
+
             done = 1;
             if (count == -1) {
                 free(accum);
@@ -1226,7 +1231,6 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
         printf("\n");
         return accum;
     }
-    return count;
 }
 
 void linenoisePrintNow(const char *text) {
@@ -1247,7 +1251,6 @@ void linenoisePrintNow(const char *text) {
  * something even in the most desperate of the conditions. */
 char *linenoise(const char *prompt, const char *promptAnsiCode, int spaces) {
     char buf[LINENOISE_MAX_LINE];
-    int count;
 
     if (isUnsupportedTerm()) {
         size_t len;
