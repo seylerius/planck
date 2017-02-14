@@ -1199,7 +1199,10 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
             return NULL; // TODO handle better?
         }
 
-        char* accum = NULL;
+        size_t accum_buf_size = 1024;
+        size_t accum_count = 0;
+        char* accum_buf = malloc(accum_buf_size);
+
 
         char already_read = 0;
         int done = 0;
@@ -1210,18 +1213,20 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
 
             done = 1;
             if (count == -1) {
-                free(accum);
-                accum = NULL;
+                free(accum_buf);
+                accum_buf = NULL;
             } else {
-                if (accum == NULL) {
-                    accum = strdup(buf);
-                } else {
-                    char* new_accum = malloc(strlen(accum) + count + 2);
-                    sprintf(new_accum, "%s\n%s", accum, buf);
-                    free(accum);
-                    accum = new_accum;
+                if (accum_count + count + 2 > accum_buf_size) { // 1 for newline and 1 for null-terminator
+                    accum_buf_size *= 2;
+                    accum_buf = realloc(accum_buf, accum_buf_size);
                 }
+                accum_buf[accum_count++] = '\n';
+                memcpy(accum_buf + accum_count, buf, count);
+                accum_count += count;
+                accum_buf[accum_count] = '\0';
+
                 already_read = get_next_char();
+
                 if (already_read) {
                     current_prompt = secondary_prompt;
                     printf("\n");
@@ -1231,7 +1236,7 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
         }
         disableRawMode(STDIN_FILENO);
         printf("\n");
-        return accum;
+        return accum_buf;
     }
 }
 
