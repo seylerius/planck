@@ -66,7 +66,7 @@ int isPasting();
 
 void linenoisePrintNow(const char *text);
 
-char *linenoise(const char *prompt, const char *promptAnsiCode, int spaces);
+char *linenoise(const char *prompt, const char *secondary_prompt, const char *promptAnsiCode, int spaces);
 
 int linenoiseHistoryAdd(const char *line);
 

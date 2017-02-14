@@ -1178,7 +1178,7 @@ static char get_next_char() {
 
 /* This function calls the line editing function linenoiseEdit() using
  * the STDIN file descriptor set in raw mode. */
-static char* linenoiseRaw(const char *prompt, int spaces) {
+static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int spaces) {
     int count;
 
     if (!isatty(STDIN_FILENO)) {
@@ -1203,7 +1203,7 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
 
         char already_read = 0;
         int done = 0;
-        char *current_prompt = prompt;
+        const char *current_prompt = prompt;
         while (!done) {
             char buf[LINENOISE_MAX_LINE];
             count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, already_read);
@@ -1223,7 +1223,7 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
                 }
                 already_read = get_next_char();
                 if (already_read) {
-                    current_prompt = "       #_.> ";
+                    current_prompt = secondary_prompt;
                     printf("\n");
                     done = 0;
                 }
@@ -1251,7 +1251,7 @@ void linenoisePrintNow(const char *text) {
  * for a blacklist of stupid terminals, and later either calls the line
  * editing function or uses dummy fgets() so that you will be able to type
  * something even in the most desperate of the conditions. */
-char *linenoise(const char *prompt, const char *promptAnsiCode, int spaces) {
+char *linenoise(const char *prompt, const char* secondary_prompt, const char *promptAnsiCode, int spaces) {
     char buf[LINENOISE_MAX_LINE];
 
     if (isUnsupportedTerm()) {
@@ -1268,7 +1268,7 @@ char *linenoise(const char *prompt, const char *promptAnsiCode, int spaces) {
         return strdup(buf);
     } else {
         currentPromptAnsiCode = promptAnsiCode;
-        return linenoiseRaw(prompt, spaces);
+        return linenoiseRaw(prompt, secondary_prompt, spaces);
     }
 }
 
