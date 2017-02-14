@@ -832,6 +832,7 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         if (already_read) {
             c = already_read;
             already_read = 0;
+            nread = 1;
         } else {
             nread = read(l.ifd, &c, 1);
         }
@@ -1194,6 +1195,7 @@ static char* linenoiseRaw(const char *prompt, int spaces) {
         /* Interactive editing. */
 
         if (enableRawMode(STDIN_FILENO) == -1) {
+            fprintf(stderr, "failed to enable raw mode");
             return NULL; // TODO handle better?
         }
 
