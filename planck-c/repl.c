@@ -148,7 +148,16 @@ bool process_line(repl_t *repl, char *input_line) {
     // Add input line to history
 
     if (repl->history_path != NULL && !is_whitespace(repl->input)) {
-        linenoiseHistoryAdd(input_line);
+
+        // Split on newlines because input_line will contain newlines if pasting
+        char* tokenize = strdup(input_line);
+        char *token = strtok(tokenize, "\n");
+        while( token != NULL ) {
+            linenoiseHistoryAdd(token);
+            token = strtok(NULL, "\n");
+        }
+        free(tokenize);
+
         linenoiseHistorySave(repl->history_path);
     }
 
