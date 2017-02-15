@@ -1199,7 +1199,7 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
             return NULL; // TODO handle better?
         }
 
-        size_t accum_buf_size = 1024;
+        size_t accum_buf_size = 2 * LINENOISE_MAX_LINE;
         size_t accum_count = 0;
         char* accum_buf = malloc(accum_buf_size);
 
