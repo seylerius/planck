@@ -788,7 +788,7 @@ static void set_current(struct linenoiseState *current, const char *str) {
  * when ctrl+d is typed.
  *
  * The function returns the length of the current buffer. */
-static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt, int spaces, char already_read) {
+static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, const char *prompt, int spaces, char peek_char) {
     struct linenoiseState l;
 
     /* Populate the linenoise state that we pass to functions implementing
@@ -829,9 +829,9 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         int nread;
         char seq[3];
 
-        if (already_read) {
-            c = already_read;
-            already_read = 0;
+        if (peek_char) {
+            c = peek_char;
+            peek_char = 0;
             nread = 1;
         } else {
             nread = read(l.ifd, &c, 1);
@@ -1204,12 +1204,12 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
         char* accum_buf = malloc(accum_buf_size);
 
 
-        char already_read = 0;
+        char peek_char = 0;
         int done = 0;
         const char *current_prompt = prompt;
         while (!done) {
             char buf[LINENOISE_MAX_LINE];
-            count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, already_read);
+            count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, peek_char);
 
             done = 1;
             if (count == -1) {
@@ -1225,9 +1225,9 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
                 accum_count += count;
                 accum_buf[accum_count] = '\0';
 
-                already_read = get_next_char();
+                peek_char = get_next_char();
 
-                if (already_read) {
+                if (peek_char) {
                     current_prompt = secondary_prompt;
                     printf("\n");
                     done = 0;
