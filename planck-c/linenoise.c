@@ -1179,13 +1179,12 @@ static char get_next_char() {
 /* This function calls the line editing function linenoiseEdit() using
  * the STDIN file descriptor set in raw mode. */
 static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int spaces) {
-    int count;
 
     if (!isatty(STDIN_FILENO)) {
         /* Not a tty: read from file / pipe. */
         char buf[LINENOISE_MAX_LINE];
         if (fgets(buf, LINENOISE_MAX_LINE, stdin) == NULL) return NULL;
-        count = strlen(buf);
+        size_t count = strlen(buf);
         if (count && buf[count - 1] == '\n') {
             count--;
             buf[count] = '\0';
@@ -1209,7 +1208,7 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
         const char *current_prompt = prompt;
         while (!done) {
             char buf[LINENOISE_MAX_LINE];
-            count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, peek_char);
+            int count = linenoiseEdit(STDIN_FILENO, STDOUT_FILENO, buf, LINENOISE_MAX_LINE, current_prompt, spaces, peek_char);
 
             done = 1;
             if (count == -1) {
