@@ -1184,7 +1184,7 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
     if (!isatty(STDIN_FILENO)) {
         /* Not a tty: read from file / pipe. */
         char buf[LINENOISE_MAX_LINE];
-        if (fgets(buf, LINENOISE_MAX_LINE, stdin) == NULL) return -1;
+        if (fgets(buf, LINENOISE_MAX_LINE, stdin) == NULL) return NULL;
         count = strlen(buf);
         if (count && buf[count - 1] == '\n') {
             count--;
