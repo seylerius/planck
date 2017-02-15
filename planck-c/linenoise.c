@@ -1220,7 +1220,9 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
                     accum_buf_size *= 2;
                     accum_buf = realloc(accum_buf, accum_buf_size);
                 }
-                accum_buf[accum_count++] = '\n';
+                if (accum_count) {
+                    accum_buf[accum_count++] = '\n';
+                }
                 memcpy(accum_buf + accum_count, buf, count);
                 accum_count += count;
                 accum_buf[accum_count] = '\0';
