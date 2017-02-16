@@ -766,14 +766,6 @@ void linenoiseEditDeletePrevWord(struct linenoiseState *l) {
     refreshLine(l);
 }
 
-/**
- * Make a best guess at whether the user is pasting a form based on the
- * time between character reads.
- */
-int isPasting() {
-    return pasting;
-}
-
 static void set_current(struct linenoiseState *current, const char *str) {
     strncpy(current->buf, str, current->buflen);
     current->buf[current->buflen - 1] = 0;
@@ -836,11 +828,13 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         } else {
             nread = read(l.ifd, &c, 1);
         }
-        if (c != keymap[KM_ENTER] && c != '>') {  // Also check for '>' so we can catch pasting involving prompt
-            lastCharRead = system_time();
-        } else {
-            uint64_t now = system_time();
-            pasting = now - lastCharRead < 10000;
+        if (!pasting) {
+            if (c != keymap[KM_ENTER] && c != '>') {  // Also check for '>' so we can catch pasting involving prompt
+                lastCharRead = system_time();
+            } else {
+                uint64_t now = system_time();
+                pasting = now - lastCharRead < 10000;
+            }
         }
         if (nread <= 0) {
             printNowState = NULL;
@@ -1232,11 +1226,13 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
                     current_prompt = secondary_prompt;
                     printf("\n");
                     done = 0;
+                    pasting = 1;
                 }
             }
         }
         disableRawMode(STDIN_FILENO);
         printf("\n");
+        pasting = 0;
         return accum_buf;
     }
 }

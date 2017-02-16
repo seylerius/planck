@@ -62,8 +62,6 @@ typedef void(linenoiseHighlightCancelCallback)();
 
 void linenoiseSetHighlightCancelCallback(linenoiseHighlightCancelCallback *);
 
-int isPasting();
-
 void linenoisePrintNow(const char *text);
 
 char *linenoise(const char *prompt, const char *secondary_prompt, const char *promptAnsiCode, int spaces);
