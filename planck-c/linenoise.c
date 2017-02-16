@@ -661,7 +661,7 @@ int linenoiseEditInsert(struct linenoiseState *l, char c) {
             refreshLine(l);
         }
 
-        if (highlightCallback != NULL) {
+        if (!pasting && highlightCallback != NULL) {
             highlightCallback(l->buf, l->pos - 1);
         }
 
