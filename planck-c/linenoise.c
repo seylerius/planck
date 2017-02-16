@@ -828,14 +828,14 @@ static int linenoiseEdit(int stdin_fd, int stdout_fd, char *buf, size_t buflen, 
         } else {
             nread = read(l.ifd, &c, 1);
         }
-        if (!pasting) {
-            if (c != keymap[KM_ENTER] && c != '>') {  // Also check for '>' so we can catch pasting involving prompt
-                lastCharRead = system_time();
-            } else {
-                uint64_t now = system_time();
-                pasting = now - lastCharRead < 10000;
-            }
+
+        if (c != keymap[KM_ENTER] && c != '>') {  // Also check for '>' so we can catch pasting involving prompt
+            lastCharRead = system_time();
+        } else {
+            uint64_t now = system_time();
+            pasting = now - lastCharRead < 10000;
         }
+
         if (nread <= 0) {
             printNowState = NULL;
             return l.len;
@@ -1232,7 +1232,7 @@ static char* linenoiseRaw(const char *prompt, const char *secondary_prompt, int 
         }
         disableRawMode(STDIN_FILENO);
         printf("\n");
-        pasting = 0;
+        //pasting = 0;
         return accum_buf;
     }
 }
@@ -1246,6 +1246,10 @@ void linenoisePrintNow(const char *text) {
             refreshLine(printNowState);
         }
     }
+}
+
+int is_pasting() {
+    return pasting;
 }
 
 /* The high level function that is the main API of the linenoise library.

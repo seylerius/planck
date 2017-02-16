@@ -224,7 +224,9 @@ bool process_line(repl_t *repl, char *input_line) {
         } else {
             // Prepare for reading non-1st of input with secondary prompt
             if (repl->history_path != NULL) {
-                repl->indent_space_count = indent_space_count(repl->input);
+                if (!is_pasting()) {
+                    repl->indent_space_count = indent_space_count(repl->input);
+                }
             }
 
             free(repl->current_prompt);

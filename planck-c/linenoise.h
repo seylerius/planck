@@ -82,6 +82,8 @@ void linenoisePrintKeyCodes(void);
 
 void linenoiseSetKeymapEntry(int action, char key);
 
+int is_pasting();
+
 #define KM_GO_TO_START_OF_LINE 0
 #define KM_MOVE_LEFT 1
 #define KM_CANCEL 2
