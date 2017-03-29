@@ -3,7 +3,8 @@
   (:require
    [cljs.spec :as s]
    [clojure.string :as string]
-   [planck.core])
+   [planck.core]
+   [planck.http :as http])
   (:import
    (goog Uri)))
 
@@ -29,6 +30,10 @@
           :query-string (s/nilable string?))
   :ret #(instance? Uri %))
 
+(defn- file-uri?
+  [uri]
+  (= "file" (.getScheme uri)))
+
 (defprotocol Coercions
   "Coerce between various 'resource-namish' things."
   (as-file [x] "Coerce argument to a File.")
@@ -45,7 +50,14 @@
 
   File
   (as-file [f] f)
-  (as-url [f] (build-uri :file nil nil (:path f) nil)))
+  (as-url [f] (build-uri :file nil nil (:path f) nil))
+
+  Uri
+  (as-url [u] u)
+  (as-file [u]
+    (if (file-uri? u)
+      (as-file (.getPath u))
+      (throw (js/Error. (str "Not a file: " u))))))
 
 (defn- as-url-or-file [f]
   (if (string/starts-with? f "http")
@@ -157,6 +169,31 @@
             (swap! open-file-output-stream-descriptors disj file-descriptor)
             (js/PLANCK_FILE_OUTPUT_STREAM_CLOSE file-descriptor))))))
 
+  Uri
+  (make-reader [uri opts]
+    (if (file-uri? uri)
+      (make-reader (as-file uri) opts)
+      (let [content (atom (:body (http/get (str uri) {})))]
+        (letfn [(read [] (let [return @content]
+                           (reset! content nil)
+                           return))]
+          (planck.core/->BufferedReader
+            read
+            (fn [])
+            (atom nil)
+            (atom 0))))))
+  (make-writer [uri opts]
+    (if (file-uri? uri)
+      (make-writer (as-file uri) opts)
+      (planck.core/->Writer
+        (fn [content]
+          (let [name     (or (:param-name opts) "file")
+                filename (or (:filename opts) "file.pnk")]
+            (http/post (str uri) {:multipart-params [[name [content filename]]]}))
+          nil)
+        (fn [])
+        (fn []))))
+
   default
   (make-reader [x _]
     (if (satisfies? planck.core/IReader x)
@@ -251,6 +288,20 @@
 (s/fdef directory?
   :args (s/cat :dir (s/or :string string? :file file?))
   :ret boolean?)
+
+(defn resource
+  "Returns the URI for a named resource."
+  [n]
+  (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]         ; TODO extra arg to skip content
+    (prn [loaded-path loaded-type loaded-location])
+    (case loaded-type
+      "jar" (build-uri "file:jar" nil nil
+              (str loaded-location "!" loaded-path) nil)
+      "src" (build-uri "file" "" nil loaded-path nil))))
+
+(s/fdef resource
+  :args (s/cat :n string?)
+  )
 
 ;; These have been moved
 (def ^:deprecated read-line planck.core/read-line)

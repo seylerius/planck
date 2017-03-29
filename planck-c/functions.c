@@ -106,6 +106,8 @@ JSValueRef function_load(JSContextRef ctx, JSObjectRef function, JSObjectRef thi
         time_t last_modified = 0;
         char *contents = NULL;
         char *loaded_path = strdup(path);
+        char *loaded_type = NULL;
+        char *loaded_location = NULL;
 
         bool developing = (config.num_src_paths == 1 &&
                            strcmp(config.src_paths[0].type, "src") == 0 &&
@@ -133,12 +135,16 @@ JSValueRef function_load(JSContextRef ctx, JSObjectRef function, JSObjectRef thi
                     if (contents != NULL) {
                         free(loaded_path);
                         loaded_path = strdup(full_path);
+                        loaded_type = type;
+                        loaded_location = location;
                     }
                     free(full_path);
                 } else if (strcmp(type, "jar") == 0) {
                     struct stat file_stat;
                     if (stat(location, &file_stat) == 0) {
                         contents = get_contents_zip(location, path, &last_modified);
+                        loaded_type = type;
+                        loaded_location = location;
                     } else {
                         engine_perror(location);
                         config.src_paths[i].blacklisted = true;
@@ -170,12 +176,17 @@ JSValueRef function_load(JSContextRef ctx, JSObjectRef function, JSObjectRef thi
             free(contents);
             JSStringRef loaded_path_str = JSStringCreateWithUTF8CString(loaded_path);
             free(loaded_path);
+            JSStringRef loaded_type_str = JSStringCreateWithUTF8CString(loaded_type);
+            JSStringRef loaded_location_str = JSStringCreateWithUTF8CString(loaded_location);
 
-            JSValueRef res[3];
+
+            JSValueRef res[5];
             res[0] = JSValueMakeString(ctx, contents_str);
             res[1] = JSValueMakeNumber(ctx, last_modified);
             res[2] = JSValueMakeString(ctx, loaded_path_str);
-            return JSObjectMakeArray(ctx, 3, res, NULL);
+            res[3] = JSValueMakeString(ctx, loaded_type_str);
+            res[4] = JSValueMakeString(ctx, loaded_location_str);
+            return JSObjectMakeArray(ctx, 5, res, NULL);
         }
 
         free(loaded_path);
