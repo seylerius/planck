@@ -127,7 +127,7 @@
 (defn- make-jar-uri-reader
   [jar-uri opts]
   (let [file-uri (Uri. (.getPath jar-uri))
-        [file-path resource] (string/split (.getPath file-uri) #"!")
+        [file-path resource] (string/split (.getPath file-uri) #"!/")
         content (js/PLANCK_LOAD_FROM_JAR file-path resource)]
     (make-string-reader content)))
 
@@ -340,7 +340,7 @@
   [n]
   (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]         ; TODO extra arg to skip content
     (case loaded-type
-      "jar" (Uri. (str "jar:file:" loaded-location "!" loaded-path))
+      "jar" (Uri. (str "jar:file:" loaded-location "!/" loaded-path))
       "src" (build-uri "file" "" nil loaded-path nil)
       "bundled" (build-uri "bundled" nil nil loaded-path nil))))
 

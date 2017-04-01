@@ -6,7 +6,9 @@
     [clojure.string :as string]
     [foo.core]
     [planck.core]
-    [clojure.string :as string]))
+    [clojure.string :as string])
+  (:import
+    (goog Uri)))
 
 (deftest exit-throws
   #_(testing "exit throws EXIT exception"
@@ -85,3 +87,8 @@
 
 (deftest slurp-url-test
   (is (string/includes? (planck.core/slurp "http://planck-repl.org") "Planck")))
+
+(deftest slurp-from-jar-test
+  (is (= "(ns test-jar.core)\n\n(def x \"Hello, from JAR\")\n"
+        (planck.core/slurp
+          (Uri. "jar:file:int-test/test-jar.jar!/test_jar/core.cljs")))))
