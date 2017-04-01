@@ -301,10 +301,9 @@
   [n]
   (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]         ; TODO extra arg to skip content
     (case loaded-type
-      "jar" (build-uri "file:jar" nil nil
-              (str loaded-location "!" loaded-path) nil)
+      "jar" (Uri. (str "jar:file:" loaded-location "!" loaded-path))
       "src" (build-uri "file" "" nil loaded-path nil)
-      "bundled" (build-uri "file:bundled" "" nil loaded-path nil))))
+      "bundled" (Uri. "file:bundled:" loaded-path))))
 
 (s/fdef resource
   :args (s/cat :n string?)
