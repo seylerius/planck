@@ -12,6 +12,11 @@
   Object
   (toString [_] path))
 
+(defn- uri?
+  "Returns true iff x is a Uri."
+  [x]
+  (instance? Uri x))
+
 (defn build-uri
   "Builds a URI"
   [scheme server-name server-port uri query-string]
@@ -28,11 +33,13 @@
           :server-port (s/nilable (s/or :integer integer? :string string?))
           :uri (s/nilable string?)
           :query-string (s/nilable string?))
-  :ret #(instance? Uri %))
+  :ret uri?)
 
 (defn- file-uri?
-  [uri]
-  (= "file" (.getScheme uri)))
+  "Returns true iff x is a file Uri."
+  [x]
+  (and (uri? x)
+       (= "file" (.getScheme x))))
 
 (defprotocol Coercions
   "Coerce between various 'resource-namish' things."
@@ -293,7 +300,6 @@
   "Returns the URI for a named resource."
   [n]
   (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]         ; TODO extra arg to skip content
-    (prn [loaded-path loaded-type loaded-location])
     (case loaded-type
       "jar" (build-uri "file:jar" nil nil
               (str loaded-location "!" loaded-path) nil)
@@ -302,7 +308,7 @@
 
 (s/fdef resource
   :args (s/cat :n string?)
-  )
+  :ret uri?)
 
 ;; These have been moved
 (def ^:deprecated read-line planck.core/read-line)
