@@ -2,9 +2,11 @@
   (:require-macros
    [planck.core])
   (:require
-   [clojure.test :refer [deftest is testing]]
-   [foo.core]
-   [planck.core]))
+    [clojure.test :refer [deftest is testing]]
+    [clojure.string :as string]
+    [foo.core]
+    [planck.core]
+    [clojure.string :as string]))
 
 (deftest exit-throws
   #_(testing "exit throws EXIT exception"
@@ -80,3 +82,6 @@
           nil
           {:eval cljs.js/js-eval}
           identity))))
+
+(deftest slurp-url-test
+  (is (string/includes? (planck.core/slurp "http://planck-repl.org") "Planck")))

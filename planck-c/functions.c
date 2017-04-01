@@ -239,6 +239,41 @@ JSValueRef function_load_deps_cljs_files(JSContextRef ctx, JSObjectRef function,
     return JSObjectMakeArray(ctx, num_files, files, NULL);
 }
 
+JSValueRef function_load_from_jar(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                  size_t argc, const JSValueRef args[], JSValueRef *exception) {
+
+    if (argc == 2
+        && JSValueGetType(ctx, args[0]) == kJSTypeString
+        && JSValueGetType(ctx, args[1]) == kJSTypeString) {
+
+        char jar_path[PATH_MAX];
+        JSStringRef path_str = JSValueToStringCopy(ctx, args[0], NULL);
+        assert(JSStringGetLength(path_str) < PATH_MAX);
+        JSStringGetUTF8CString(path_str, jar_path, PATH_MAX);
+        JSStringRelease(path_str);
+
+        char resource_path[PATH_MAX];
+        JSStringRef resource_path_str = JSValueToStringCopy(ctx, args[1], NULL);
+        assert(JSStringGetLength(resource_path_str) < PATH_MAX);
+        JSStringGetUTF8CString(resource_path_str, resource_path, PATH_MAX);
+        JSStringRelease(resource_path_str);
+
+        char *contents = get_contents_zip(jar_path, resource_path, NULL);
+
+        if (contents != NULL) {
+            JSStringRef contents_str = JSStringCreateWithUTF8CString(contents);
+            free(contents);
+
+            JSValueRef res[1];
+            res[0] = JSValueMakeString(ctx, contents_str);
+            return JSObjectMakeArray(ctx, 1, res, NULL);
+        }
+
+    }
+
+    return JSValueMakeNull(ctx);
+}
+
 JSValueRef function_cache(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                           size_t argc, const JSValueRef args[], JSValueRef *exception) {
     if (argc == 4 &&

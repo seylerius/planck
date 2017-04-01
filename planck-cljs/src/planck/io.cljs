@@ -35,11 +35,17 @@
           :query-string (s/nilable string?))
   :ret uri?)
 
+(defn- has-scheme?
+  [uri scheme]
+  (= scheme (.getScheme uri)))
+
 (defn- file-uri?
-  "Returns true iff x is a file Uri."
-  [x]
-  (and (uri? x)
-       (= "file" (.getScheme x))))
+  [uri]
+  (has-scheme? uri "file"))
+
+(defn- jar-uri?
+  [uri]
+  (has-scheme? uri "jar"))
 
 (defprotocol Coercions
   "Coerce between various 'resource-namish' things."
@@ -101,6 +107,40 @@
   [file-descriptor file opts]
   (when (bad-file-descriptor? file-descriptor)
     (throw (ex-info "Failed to open file." {:file file, :opts opts}))))
+
+(defn- make-string-reader
+  [s]
+  (let [content (atom s)]
+    (letfn [(read [] (let [return @content]
+                       (reset! content nil)
+                       return))]
+      (planck.core/->BufferedReader
+        read
+        (fn [])
+        (atom nil)
+        (atom 0)))))
+
+(defn- make-jar-uri-reader
+  [jar-uri opts]
+  (let [file-uri (Uri. (.getPath jar-uri))
+        [file-path resource] (string/split (.getPath file-uri) #"!")
+        content (js/PLANCK_LOAD_FROM_JAR file-path resource)]
+    (make-string-reader content)))
+
+(defn- make-http-uri-reader
+  [uri opts]
+  (make-string-reader (:body (http/get (str uri) {}))))
+
+(defn- make-http-uri-writer
+  [uri opts]
+  (planck.core/->Writer
+    (fn [content]
+      (let [name     (or (:param-name opts) "file")
+            filename (or (:filename opts) "file.pnk")]
+        (http/post (str uri) {:multipart-params [[name [content filename]]]}))
+      nil)
+    (fn [])
+    (fn [])))
 
 (extend-protocol IOFactory
   string
@@ -178,28 +218,15 @@
 
   Uri
   (make-reader [uri opts]
-    (if (file-uri? uri)
-      (make-reader (as-file uri) opts)
-      (let [content (atom (:body (http/get (str uri) {})))]
-        (letfn [(read [] (let [return @content]
-                           (reset! content nil)
-                           return))]
-          (planck.core/->BufferedReader
-            read
-            (fn [])
-            (atom nil)
-            (atom 0))))))
+    (cond
+      (file-uri? uri) (make-reader (as-file uri) opts)
+      (jar-uri? uri) (make-jar-uri-reader uri opts)
+      :else (make-http-uri-reader uri opts)))
   (make-writer [uri opts]
-    (if (file-uri? uri)
-      (make-writer (as-file uri) opts)
-      (planck.core/->Writer
-        (fn [content]
-          (let [name     (or (:param-name opts) "file")
-                filename (or (:filename opts) "file.pnk")]
-            (http/post (str uri) {:multipart-params [[name [content filename]]]}))
-          nil)
-        (fn [])
-        (fn []))))
+    (cond
+      (file-uri? uri) (make-writer (as-file uri) opts)
+      (jar-uri? uri) (throw (ex-info "Can't write to jar URI" {:uri uri}))
+      :else (make-http-uri-writer uri opts)))
 
   default
   (make-reader [x _]
@@ -303,7 +330,7 @@
     (case loaded-type
       "jar" (Uri. (str "jar:file:" loaded-location "!" loaded-path))
       "src" (build-uri "file" "" nil loaded-path nil)
-      "bundled" (Uri. "file:bundled:" loaded-path))))
+      "bundled" (Uri. "bundled:file" loaded-path))))
 
 (s/fdef resource
   :args (s/cat :n string?)
