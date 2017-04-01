@@ -63,6 +63,8 @@
   (is (thrown? js/Error (planck.io/output-stream "/tmp"))))
 
 (deftest resource-test
+  (is (nil? (planck.io/resource nil)))
+  (is (nil? (planck.io/resource "/bogus/path")))
   (testing "file resources"
     (let [resource (planck.io/resource "foo/core.cljs")]
       (is (instance? Uri resource))
@@ -72,4 +74,9 @@
     (let [resource (planck.io/resource "clojure/test/check.cljc")]
       (is (instance? Uri resource))
       (is "jar" (.getScheme resource))
-      (is (string/includes? (planck.core/slurp resource) "ns clojure.test.check")))))
+      (is (string/includes? (planck.core/slurp resource) "ns clojure.test.check"))))
+  (testing "bundled resources"
+    (let [resource (planck.io/resource "planck/repl.clj")]
+      (is (instance? Uri resource))
+      (is "bundled" (.getScheme resource))
+      (is (string/includes? (planck.core/slurp resource) "ns planck.repl")))))

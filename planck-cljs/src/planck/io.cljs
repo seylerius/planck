@@ -47,6 +47,10 @@
   [uri]
   (has-scheme? uri "jar"))
 
+(defn- bundled-uri?
+  [uri]
+  (has-scheme? uri "bundled"))
+
 (defprotocol Coercions
   "Coerce between various 'resource-namish' things."
   (as-file [x] "Coerce argument to a File.")
@@ -125,6 +129,12 @@
   (let [file-uri (Uri. (.getPath jar-uri))
         [file-path resource] (string/split (.getPath file-uri) #"!")
         content (js/PLANCK_LOAD_FROM_JAR file-path resource)]
+    (make-string-reader content)))
+
+(defn- make-bundled-uri-reader
+  [bundle-uri opts]
+  (let [path (.getPath bundle-uri)
+        content (first (js/PLANCK_LOAD path))]
     (make-string-reader content)))
 
 (defn- make-http-uri-reader
@@ -221,11 +231,13 @@
     (cond
       (file-uri? uri) (make-reader (as-file uri) opts)
       (jar-uri? uri) (make-jar-uri-reader uri opts)
+      (bundled-uri? uri) (make-bundled-uri-reader uri opts)
       :else (make-http-uri-reader uri opts)))
   (make-writer [uri opts]
     (cond
       (file-uri? uri) (make-writer (as-file uri) opts)
       (jar-uri? uri) (throw (ex-info "Can't write to jar URI" {:uri uri}))
+      (bundled-uri? uri) (throw (ex-info "Can't write to bundled URI" {:uri uri}))
       :else (make-http-uri-writer uri opts)))
 
   default
@@ -330,7 +342,7 @@
     (case loaded-type
       "jar" (Uri. (str "jar:file:" loaded-location "!" loaded-path))
       "src" (build-uri "file" "" nil loaded-path nil)
-      "bundled" (Uri. "bundled:file" loaded-path))))
+      "bundled" (build-uri "bundled" nil nil loaded-path nil))))
 
 (s/fdef resource
   :args (s/cat :n string?)
