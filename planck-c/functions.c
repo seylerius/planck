@@ -115,6 +115,7 @@ JSValueRef function_load(JSContextRef ctx, JSObjectRef function, JSObjectRef thi
 
         if (!developing) {
             contents = bundle_get_contents(path);
+            loaded_type = "bundled";
             last_modified = 0;
         }
 

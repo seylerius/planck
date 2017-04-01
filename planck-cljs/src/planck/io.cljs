@@ -297,7 +297,8 @@
     (case loaded-type
       "jar" (build-uri "file:jar" nil nil
               (str loaded-location "!" loaded-path) nil)
-      "src" (build-uri "file" "" nil loaded-path nil))))
+      "src" (build-uri "file" "" nil loaded-path nil)
+      "bundled" (build-uri "file:bundled" "" nil loaded-path nil))))
 
 (s/fdef resource
   :args (s/cat :n string?)
