@@ -126,10 +126,20 @@
 
 (defn- make-jar-uri-reader
   [jar-uri opts]
-  (let [file-uri (Uri. (.getPath jar-uri))
-        [file-path resource] (string/split (.getPath file-uri) #"!/")
-        content (js/PLANCK_LOAD_FROM_JAR file-path resource)]
-    (make-string-reader content)))
+  (let [file-uri (Uri. (.getPath jar-uri))]
+    (if (file-uri? file-uri)
+      (let [[file-path resource] (string/split (.getPath file-uri) #"!/")
+            [content error-msg] (js/PLANCK_LOAD_FROM_JAR file-path resource)]
+        (if-not (nil? content)
+          (make-string-reader content)
+          (throw (ex-info (str "Failed to extract resource from JAR: " error-msg)
+                   {:uri       jar-uri
+                    :jar-file  file-path
+                    :resource  resource
+                    :error-msg error-msg}))))
+      (throw (ex-info "Not a JAR file URI"
+               {:uri jar-uri
+                :sub-uri file-uri})))))
 
 (defn- make-bundled-uri-reader
   [bundle-uri opts]

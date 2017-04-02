@@ -143,7 +143,13 @@ JSValueRef function_load(JSContextRef ctx, JSObjectRef function, JSObjectRef thi
                 } else if (strcmp(type, "jar") == 0) {
                     struct stat file_stat;
                     if (stat(location, &file_stat) == 0) {
-                        contents = get_contents_zip(location, path, &last_modified);
+                        char *error_msg = NULL;
+                        contents = get_contents_zip(location, path, &last_modified, &error_msg);
+                        if (!contents && error_msg) {
+                            engine_print(error_msg);
+                            engine_print("\n");
+                            free(error_msg);
+                        }
                         loaded_type = type;
                         loaded_location = location;
                     } else {
@@ -213,11 +219,18 @@ JSValueRef function_load_deps_cljs_files(JSContextRef ctx, JSObjectRef function,
             if (strcmp(type, "jar") == 0) {
                 struct stat file_stat;
                 if (stat(location, &file_stat) == 0) {
-                    char *source = get_contents_zip(location, "deps.cljs", NULL);
+                    char *error_msg = NULL;
+                    char *source = get_contents_zip(location, "deps.cljs", NULL, &error_msg);
                     if (source != NULL) {
                         num_files += 1;
                         deps_cljs_files = realloc(deps_cljs_files, num_files * sizeof(char *));
                         deps_cljs_files[num_files - 1] = source;
+                    } else {
+                        if (error_msg) {
+                            engine_print(error_msg);
+                            engine_print("\n");
+                            free(error_msg);
+                        }
                     }
                 } else {
                     engine_perror(location);
@@ -258,16 +271,29 @@ JSValueRef function_load_from_jar(JSContextRef ctx, JSObjectRef function, JSObje
         JSStringGetUTF8CString(resource_path_str, resource_path, PATH_MAX);
         JSStringRelease(resource_path_str);
 
-        char *contents = get_contents_zip(jar_path, resource_path, NULL);
+        char *error_msg = NULL;
+        char *contents = get_contents_zip(jar_path, resource_path, NULL, &error_msg);
 
+        JSStringRef contents_str = NULL;
         if (contents != NULL) {
-            JSStringRef contents_str = JSStringCreateWithUTF8CString(contents);
+            contents_str = JSStringCreateWithUTF8CString(contents);
             free(contents);
-
-            JSValueRef res[1];
-            res[0] = JSValueMakeString(ctx, contents_str);
-            return JSObjectMakeArray(ctx, 1, res, NULL);
+        } else {
+            if (!error_msg) {
+                error_msg = strdup("Resource not found in JAR");
+            }
         }
+
+        JSStringRef error_msg_str = NULL;
+        if (error_msg != NULL) {
+            error_msg_str = JSStringCreateWithUTF8CString(error_msg);
+            free(error_msg);
+        }
+
+        JSValueRef res[2];
+        res[0] = contents ? JSValueMakeString(ctx, contents_str) : JSValueMakeNull(ctx);
+        res[1] = error_msg ? JSValueMakeString(ctx, error_msg_str) : JSValueMakeNull(ctx);
+        return JSObjectMakeArray(ctx, 2, res, NULL);
 
     }
 

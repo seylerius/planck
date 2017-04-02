@@ -91,4 +91,10 @@
 (deftest slurp-from-jar-test
   (is (= "(ns test-jar.core)\n\n(def x \"Hello, from JAR\")\n"
         (planck.core/slurp
-          (Uri. "jar:file:int-test/test-jar.jar!/test_jar/core.cljs")))))
+          (Uri. "jar:file:int-test/test-jar.jar!/test_jar/core.cljs"))))
+  (is (thrown? js/Error (planck.core/slurp
+                          (Uri. "jar:file:int-test/test-jar.jar!/bogus_path/core.cljs"))))
+  (is (thrown? js/Error (planck.core/slurp
+                          (Uri. "jar:file:bogus-path/test-jar.jar!/test_jar/core.cljs"))))
+  (is (thrown? js/Error (planck.core/slurp
+                          (Uri. "jar:non-file:int-test/test-jar.jar!/test_jar/core.cljs")))))
