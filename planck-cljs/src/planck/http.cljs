@@ -3,8 +3,7 @@
   (:refer-clojure :exclude [get])
   (:require
    [cljs.spec :as s]
-   [clojure.string :as string]
-   [planck.core]))
+   [clojure.string :as string]))
 
 (def ^:private content-types {:json            "application/json"
                               :xml             "application/xml"

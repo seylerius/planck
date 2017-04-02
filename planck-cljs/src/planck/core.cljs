@@ -7,6 +7,7 @@
    [clojure.string :as string]
    [planck.repl :as repl])
   (:import
+   (goog Uri)                                               ; Explicitly import here for planck.io
    (goog.string StringBuffer)))
 
 (s/def ::binding
