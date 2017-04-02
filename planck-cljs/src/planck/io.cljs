@@ -356,7 +356,7 @@
 
 (s/fdef resource
   :args (s/cat :n string?)
-  :ret uri?)
+  :ret (s/nilable uri?))
 
 ;; These have been moved
 (def ^:deprecated read-line planck.core/read-line)
