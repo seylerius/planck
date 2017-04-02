@@ -338,7 +338,7 @@
 (defn resource
   "Returns the URI for a named resource."
   [n]
-  (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]         ; TODO extra arg to skip content
+  (when-some [[_ _ loaded-path loaded-type loaded-location] (js/PLANCK_LOAD n)]
     (case loaded-type
       "jar" (Uri. (str "jar:file:" loaded-location "!/" loaded-path))
       "src" (build-uri "file" "" nil loaded-path nil)
