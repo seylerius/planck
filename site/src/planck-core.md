@@ -1,186 +1,217 @@
 # planck.core
 
-## \*command-line-args\*
+Core Planck functions for use in scripts.
+
+[\*command-line-args\*](#command-line-args)<br/>
+[\*err\*](#err)<br/>
+[\*in\*](#in)<br/>
+[\*planck-version\*](#planck-version)<br/>
+[IBufferedReader](#IBufferedReader)<br/>
+[IClosable](#IClosable)<br/>
+[IInputStream](#IInputStream)<br/>
+[IOutputStream](#IOutputStream)<br/>
+[IReader](#IReader)<br/>
+[eval](#eval)<br/>
+[exit](#exit)<br/>
+[file-seq](#file-seq)<br/>
+[init-empty-state](#init-empty-state)<br/>
+[intern](#intern)<br/>
+[line-seq](#line-seq)<br/>
+[ns-resolve](#ns-resolve)<br/>
+[read-line](#read-line)<br/>
+[read-password](#read-password)<br/>
+[resolve](#resolve)<br/>
+[slurp](#slurp)<br/>
+[spit](#spit)<br/>
+[with-open](#with-open)<br/>
+
+## <a name="command-line-args"></a>\*command-line-args\*
 
 A sequence of the supplied command line arguments, or `nil` if none were supplied
 
-## \*err\*
+## <a name="err"></a>\*err\*
 
 A `cljs.core/IWriter` representing standard error for print operations.
 
-planck.core/*in*
-  A planck.io/IReader representing standard input for read operations.
+## <a name="in"></a>\*in\*
+  A `planck.io/IReader` representing standard input for read operations.
 
-## \*planck-version\*
+## <a name="planck-version"></a>\*planck-version\*
 
-## IBufferedReader
-Protocol
-  Protocol for reading line-based content.
+A string containing the version of the Planck executable.
 
-  -read-line
-  ([this])
+## <a name="IBufferedReader"></a>IBufferedReader
+_Protocol_
+
+Protocol for reading line-based content.
+
+  `-read-line`<br/>
+  `([this])`<br/>
   Reads the next line.
 
 
-## IClosable
-Protocol
+## <a name="IClosable"></a>IClosable
+_Protocol_
 
-  -close
-  ([this])
+  `-close`<br/>
+  `([this])`
 
-## planck.core/IInputStream
-Protocol
+## <a name="IInputStream"></a>IInputStream
+_Protocol_
+
   Protocol for reading binary data.
 
-  -read-bytes
-  ([this])
-  Returns available bytes as an array of unsigned numbers or nil if EOF.
+  `-read-bytes`<br/>
+  `([this])`<br/>
+  Returns available bytes as an array of unsigned numbers or `nil` if EOF.
 
-## planck.core/IOutputStream
-Protocol
+## <a name="IOutputStream"></a>IOutputStream
+_Protocol_
+
   Protocol for writing binary data.
 
-  -write-bytes
-  ([this byte-array])
+  `-write-bytes`<br/>
+  `([this byte-array])`<br/>
   Writes byte array.
 
-  -flush-bytes
-  ([this])
+  `-flush-bytes`<br/>
+  `([this])`<br/>
   Flushes output.
 
-# planck.core/IReader
-Protocol
+## <a name="IReader"></a>IReader
+_Protocol_
+
   Protocol for reading.
 
-  -read
-  ([this])
-  Returns available characters as a string or nil if EOF.
+  `-read`<br/>
+  `([this])`<br/>
+  Returns available characters as a string or `nil` if EOF.
 
-# `eval`
+## <a name="eval"></a>eval
 `([form])`
 
 Evaluates the form data structure (not text!) and returns the result.
 
 Spec<br/>
- args: `(cat :form any?)`<br/>
- ret: `any?`<br/>
+ _args_: `(cat :form any?)`<br/>
+ _ret_: `any?`<br/>
 
-# `exit`
+## <a name="exit"></a>exit
 `([exit-value])`
 
 Causes Planck to terminate with the supplied `exit-value`.
 
 Spec<br/>
- args: `(cat :exit-value integer?)`<br/>
+ _args_: `(cat :exit-value integer?)`<br/>
 
-# `file-seq`
+## <a name="file-seq"></a>file-seq
 `([dir])`
 
 A tree seq on files
 
-Spec
- args: `(cat :dir ::coercible-file?)`
+Spec<br/>
+ _args_: `(cat :dir ::coercible-file?)`
 
-# `init-empty-state`
+## <a name="init-empty-state"></a>init-empty-state
 `([state])`
 
-An init function for use with cljs.js/empty-state which initializes
-the empty state with cljs.core analysis metadata.
+An init function for use with `cljs.js/empty-state` which initializes
+the empty state with `cljs.core` analysis metadata.
 
-This is useful because Planck is built with :dump-core set to false.
+This is useful because Planck is built with `:dump-core` set to false.
 
 Usage: `(cljs.js/empty-state init-empty-state)`
 
-Spec
- args: `(cat :state map?)`<br/>
- ret: `map?`<br/>
+Spec<br/>
+ _args_: `(cat :state map?)`<br/>
+ _ret_: `map?`<br/>
 
-# intern
+## <a name=""></a>intern
 `([ns name] [ns name val])`
 
-Finds or creates a var named by the symbol name in the namespace
-ns (which can be a symbol or a namespace), setting its root binding
-to val if supplied. The namespace must exist. The var will adopt any
-metadata from the name symbol.  Returns the var.
+Finds or creates a var named by the symbol `name` in the namespace
+`ns` (which can be a symbol or a namespace), setting its root binding
+to `val` if supplied. The namespace must exist. The var will adopt any
+metadata from the `name` symbol.  Returns the var.
 
-Spec
- args: `(cat :ns (or :sym symbol? :ns #(instance? Namespace %)) :name symbol? :val (? any?))`<br/>
+Spec<br/>
+ _args_: `(cat :ns (or :sym symbol? :ns #(instance? Namespace %)) :name symbol? :val (? any?))`<br/>
 
-# line-seq
+## <a name="line-seq"></a>line-seq
 `([rdr])`
 
 Returns the lines of text from rdr as a lazy sequence of strings.
-rdr must implement IBufferedReader.
+`rdr` must implement `IBufferedReader`.
 
-Spec
- args: `(cat :rdr (instance? IBufferedReader %))`<br/>
- ret: `seq?`<br/>
+Spec<br/>
+ _args_: `(cat :rdr (instance? IBufferedReader %))`<br/>
+ _ret_: `seq?`<br/>
 
-# `ns-resolve`
+## <a name="ns-resolve"></a>ns-resolve
 `([ns sym])`
 
 Returns the var to which a symbol will be resolved in the namespace,
-else nil.
+else `nil`.
 
-Spec
+Spec<br/>
+ _args_: `(cat :ns symbol? :sym symbol?)`<br/>
+ _ret_: `(nilable var?)`<br/>
 
- args: `(cat :ns symbol? :sym symbol?)`<br/>
- ret: `(nilable var?)`<br/>
-
-# `read-line`
+## <a name="read-line"></a>read-line
 `([])`
 
-  Reads the next line from the current value of planck.io/*in*
+  Reads the next line from the current value of `planck.io/*in*`
 
-Spec
- args: `(cat )`<br/>
- ret: `string?`<br/>
+Spec<br/>
+ _args_: `(cat )`<br/>
+ _ret_: `string?`<br/>
 
-# `read-password`
+## <a name="read-password"></a>read-password
 `([] [prompt])`
 
   Reads the next line from console with echoing disabled.
   It will print out a prompt if supplied
 
-Spec
- args: `(cat :prompt (? string?))`<br/>
- ret: `string?`<br/>
+Spec<br/>
+ _args_: `(cat :prompt (? string?))`<br/>
+ _ret_: `string?`<br/>
 
-# resolve
+## <a name="resolve"></a>resolve
 `([sym])`
 
   Returns the var to which a symbol will be resolved in the current
-  namespace, else nil.
+  namespace, else `nil`.
 
-Spec
- args: `(cat :sym symbol?)`<br/>
- ret: `(nilable var?)`<br/>
+Spec<br/>
+ _args_: `(cat :sym symbol?)`<br/>
+ _ret_: `(nilable var?)`<br/>
 
-# slurp
+## <a name="slurp"></a>slurp
 `([f & opts])`
 
-  Opens a reader on f and reads all its contents, returning a string.
-  See planck.io/reader for a complete list of supported arguments.
+  Opens a reader on `f` and reads all its contents, returning a string.
+  See `planck.io/reader` for a complete list of supported arguments.
 
-Spec
- args: `(cat :f :planck.io/coercible-file? :opts (* any?))`
- ret: `string?
+Spec<br/>
+ _args_: `(cat :f :planck.io/coercible-file? :opts (* any?))`<br/>
+ ret: `string?`
 
-# spit
+## <a name="spit"></a>spit
 `([f content & opts])`
 
-  Opposite of slurp.  Opens f with writer, writes content, then
-  closes f. Options passed to planck.io/writer.
+  Opposite of `slurp`.  Opens `f` with `writer`, writes content, then
+  closes `f`. Options passed to `planck.io/writer`.
 
-Spec
- args: `(cat :f :planck.io/coercible-file? :content any? :opts (* any?))`
+Spec<br/>
+ `args`: `(cat :f :planck.io/coercible-file? :content any? :opts (* any?))`
 
-# with-open
+## <a name="with-open"></a>with-open
 `([bindings & body])`
 
-Macro
-  bindings => [name IClosable ...]
+_Macro_
 
-  Evaluates body in a try expression with names bound to the values
-  of the inits, and a finally clause that calls (-close name) on each
-  name in reverse order.
+  `bindings` => `[name IClosable `...`]`
+
+  Evaluates `body` in a `try` expression with names bound to the values
+  of the inits, and a `finally` clause that calls `(-close name)` on each
+  `name` in reverse order.
