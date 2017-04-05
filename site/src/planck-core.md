@@ -126,7 +126,7 @@ Spec<br/>
  _args_: `(cat :state map?)`<br/>
  _ret_: `map?`<br/>
 
-## <a name=""></a>intern
+## <a name="intern"></a>intern
 `([ns name] [ns name val])`
 
 Finds or creates a var named by the symbol `name` in the namespace
