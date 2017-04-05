@@ -141,7 +141,7 @@ Spec<br/>
 `([rdr])`
 
 Returns the lines of text from rdr as a lazy sequence of strings.
-`rdr` must implement `IBufferedReader`.
+`rdr` must implement [`IBufferedReader`](#IBufferedReader).
 
 Spec<br/>
  _args_: `(cat :rdr (instance? IBufferedReader %))`<br/>
