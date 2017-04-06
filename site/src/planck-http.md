@@ -26,8 +26,8 @@ Spec<br/>
   These options include the options for get in addition to:<br/>
   `:form-params`, a map, will become the body of the request, urlencoded<br/>
   `:multipart-params`, a list of tuples, used for file-upload<br/>
-                     `{:multipart-params [["name" "value"]`<br/>
-                                         `["name" ["content" "filename"]]`<br/>
+`{:multipart-params [["name" "value"]`<br/>
+`["name" ["content" "filename"]]`<br/>
 
 Spec<br/>
  _args_: `(cat :url string? :opts (? (keys :opt-un [::timeout ::debug ::accepts ::content-type ::headers ::body ::form-params ::multipart-params])))`<br/>

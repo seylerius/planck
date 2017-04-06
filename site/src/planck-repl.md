@@ -1,6 +1,6 @@
 # planck.repl
 
-[\*planck-results\*](#pprint-results)<br/>
+[\*pprint-results\*](#pprint-results)<br/>
 [apropos](#apropos)<br/>
 [dir](#dir)<br/>
 [doc](#doc)<br/>
