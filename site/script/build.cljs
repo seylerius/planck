@@ -31,6 +31,7 @@
 
 (process-md "sdk.md")
 (process-md "planck-core.md")
+(process-md "planck-repl.md")
 (process-md "planck-io.md")
 (process-md "planck-shell.md")
 (process-md "planck-http.md")
