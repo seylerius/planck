@@ -18,6 +18,7 @@ _Vars_
 [delete-file](#delete-file)<br/>
 [directory?](#directory?)<br/>
 [file](#file)<br/>
+[file?](#file?)<br/>
 [file-attributes](#file-attributes)<br/>
 [input-stream](#input-stream)<br/>
 [make-input-stream](#make-input-stream)<br/>
@@ -90,7 +91,7 @@ Represents a file.
 
 ### <a name="as-file"></a>as-file
 `([x])`
- 
+
 Coerce argument to a [`File`](#File).
   
 ### <a name="as-url"></a>as-url
@@ -104,7 +105,7 @@ Coerce argument to a `goog.Uri`.
 Delete file `f`.
 
 Spec<br/>
- _args_: `(cat :f ::coercible-file?)`<br/>
+ _args_: `(cat :f (s/or :string string? :file file?))`<br/>
  
 ### <a name=""></a>directory?
 `([dir])`
@@ -112,7 +113,7 @@ Spec<br/>
 Checks if `dir` is a directory.
 
 Spec<br/>
- _args_: `(cat :dir ::coercible-file?)`<br/>
+ _args_: `(cat :dir (s/or :string string? :file file?))`<br/>
  _ret_: `boolean?`<br/>
  
 ### <a name="file"></a>file
@@ -124,15 +125,24 @@ children relative to the parent.
 
 Spec<br/>
  _args_: `(cat :path-or-parent string? :more (* string?))`<br/>
- _ret_: `(instance? File %)`
- 
+ _ret_: `file?`
+
+### <a name="file?"></a>file?
+`([x])`
+
+Returns `true` if `x` is a [`File`](#File).
+
+Spec<br/>
+ _args_: `(s/cat :x any?)`<br/>
+ _ret_: `boolean?`
+  
 ### <a name="file-attributes"></a>file-attributes
 `([path])`
 
 Returns a map containing the attributes of the item at a given `path`.
 
 Spec
- _args_: `(cat :path ::coercible-file?)`<br/>
+ _args_: `(cat :path (s/or :string string? :file file?))`<br/>
  _ret_: `map?`
  
 ### <a name="input-stream"></a>input-stream

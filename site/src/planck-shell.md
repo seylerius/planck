@@ -2,6 +2,8 @@
 
 Planck Shell capability.
 
+_Vars_
+
 [\*sh-dir\*](#sh-dir)<br/>
 [\*sh-env\*](#sh-env)<br/>
 [sh](#sh)<br/>
@@ -9,11 +11,13 @@ Planck Shell capability.
 [with-sh-dir](#with-sh-dir)<br/>
 [with-sh-env](#with-sh-env)<br/>
 
-## <a name="sh-dir"></a>\*sh-dir\*
+## Vars
 
-## <a name="sh-env"></a>\*sh-env\*
+### <a name="sh-dir"></a>\*sh-dir\*
 
-## <a name="sh"></a>sh
+### <a name="sh-env"></a>\*sh-env\*
+
+### <a name="sh"></a>sh
 `([& args])`
 
 Launches a sub-process with the supplied arguments.
@@ -48,7 +52,7 @@ Spec<br/>
  _args_: `(cat :cmd (+ string?) :opts (* ::sh-opt))`<br/>
  _ret_: `(keys :req-un [::exit ::out ::err])`
  
-## <a name="sh-async"></a>sh-async
+### <a name="sh-async"></a>sh-async
 `([& args])`
 
 Launches a sub-process with the supplied arguments.
@@ -84,14 +88,14 @@ Spec<br/>
  _args_: `(cat :cmd (+ string?) :opts (* ::sh-opt) :cb fn?)`
  _ret_: `nil?`
    
-## <a name="with-sh-dir"></a>with-sh-dir
+### <a name="with-sh-dir"></a>with-sh-dir
 `([dir & forms])`
 
 _Macro_
 
 Sets the directory for use with `sh`, see `sh` for details.
   
-## <a name="with-sh-env"></a>with-sh-env
+### <a name="with-sh-env"></a>with-sh-env
 `([env & forms])`
 
 _Macro_

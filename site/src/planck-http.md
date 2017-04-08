@@ -2,10 +2,14 @@
 
 Planck HTTP functionality.
 
+_Vars_
+
 [get](#get)<br/>
 [post](#post)<br/>
 
-## <a name="get"></a>get
+## Vars
+
+### <a name="get"></a>get
 `([url] [url opts])`
   Performs a GET request. It takes an URL and an optional map of options.
   These include:<br/>
@@ -19,7 +23,7 @@ Spec<br/>
  _args_: `(cat :url string? :opts (? (keys :opt-un  [::timeout ::debug ::accepts ::content-type ::headers])))`<br/>
  _ret_: `(keys :req-un [::body ::headers ::status])`
 
-## <a name="post"></a>post
+### <a name="post"></a>post
 `([url] [url opts])`
   
   Performs a POST request. It takes an URL and an optional map of options
