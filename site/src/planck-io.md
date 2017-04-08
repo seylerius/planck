@@ -2,8 +2,17 @@
 
 Planck I/O functionality.
 
+_Protocols_
+
 [Coercions](#Coercions)<br/>
 [IOFactory](#IOFactory)<br/>
+
+_Types_
+
+[File](#File)<br/>
+
+_Vars_
+
 [as-file](#as-file)<br/>
 [as-url](#as-url)<br/>
 [delete-file](#delete-file)<br/>
@@ -18,21 +27,23 @@ Planck I/O functionality.
 [output-stream](#output-stream)<br/>
 [reader](#reader)<br/>
 [writer](#writer)<br/>
+   
+## Protocols
 
-## <a name="Coercions"></a>Coercions
+### <a name="Coercions"></a>Coercions
 _Protocol_
 
   Coerce between various 'resource-namish' things.
 
   `as-file`<br/>
   `([x])`<br/>
-  Coerce argument to a `File`.
+  Coerce argument to a [`File`](#File).
 
   `as-url`<br/>
   `([x])`<br/>
   Coerce argument to a `goog.Uri`.
   
-## <a name="IOFactory"></a>IOFactory
+### <a name="IOFactory"></a>IOFactory
 _Protocol_
 
   Factory functions that create ready-to-use versions of
@@ -45,11 +56,11 @@ _Protocol_
   `:encoding`  string name of encoding to use, e.g. "UTF-8".
 
   Callers should generally prefer the higher level API provided by
-  `reader`, `writer`, `input-stream`, and `output-stream`.
+  [`reader`](#reader), [`writer`](#writer), [`input-stream`](#input-stream), and [`output-stream`](#output-stream).
 
   `make-reader`<br/>
   `([x opts])`<br/>
-  Creates an `IReader`. See also `IOFactory` docs.
+  Creates an [`IReader`](planck-core.html#IReader). See also `IOFactory` docs.
 
   `make-writer`<br/>
   `([x opts])`<br/>
@@ -62,37 +73,52 @@ _Protocol_
   `make-output-stream`<br/>
   `([x opts])`<br/>
   Creates an `IOutputStream`. See also `IOFactory` docs.
-  
-## <a name="as-file"></a>as-file
+ 
+Attempts to coerce its argument into an open `IInputStream`.
+
+## Types
+
+### <a name="File"></a>File
+
+_Type_
+
+_Fields_: `[path]`
+
+Represents a file.
+
+## Vars
+
+### <a name="as-file"></a>as-file
 `([x])`
  
-Coerce argument to a `File`.
+Coerce argument to a [`File`](#File).
   
-## <a name="as-url"></a>as-url
+### <a name="as-url"></a>as-url
 `([x])`
 
 Coerce argument to a `goog.Uri`.
-  
-## <a name="delete-file"></a>delete-file
+
+### <a name="delete-file"></a>delete-file
 `([f])`
-  
+
 Delete file `f`.
+
 Spec<br/>
- _args_: `(cat :f ::coercible-file?)`
+ _args_: `(cat :f ::coercible-file?)`<br/>
  
-## <a name=""></a>directory?
+### <a name=""></a>directory?
 `([dir])`
-  
+
 Checks if `dir` is a directory.
 
 Spec<br/>
  _args_: `(cat :dir ::coercible-file?)`<br/>
- _ret_: `boolean?`
+ _ret_: `boolean?`<br/>
  
-## <a name="file"></a>file
+### <a name="file"></a>file
 `([path] [parent & more])`
-  
-Returns a `File` for given path.  Multiple-arg
+
+Returns a [`File`](#File) for given path.  Multiple-arg
 versions treat the first argument as parent and subsequent args as
 children relative to the parent.
 
@@ -100,51 +126,49 @@ Spec<br/>
  _args_: `(cat :path-or-parent string? :more (* string?))`<br/>
  _ret_: `(instance? File %)`
  
-## <a name="file-attributes"></a>file-attributes
+### <a name="file-attributes"></a>file-attributes
 `([path])`
-  
+
 Returns a map containing the attributes of the item at a given `path`.
 
 Spec
  _args_: `(cat :path ::coercible-file?)`<br/>
  _ret_: `map?`
  
-## <a name="input-stream"></a>input-stream
+### <a name="input-stream"></a>input-stream
 `([x & opts])`
 
-Attempts to coerce its argument into an open `IInputStream`.
-  
-## <a name="make-input-stream"></a>make-input-stream
+### <a name="make-input-stream"></a>make-input-stream
 `([x opts])`
 
-Creates an `IInputStream`. See also `IOFactory` docs.
+Creates an [`IInputStream`](planck-core.html#IInputStream). See also [`IOFactory`](#IOFactory) docs.
   
-## <a name="make-output-stream"></a>make-output-stream
+### <a name="make-output-stream"></a>make-output-stream
 `([x opts])`
   
-Creates an `IOutputStream`. See also `IOFactory` docs.
+Creates an [`IOutputStream`](planck-core.html#IOutputStream). See also [`IOFactory`](#IOFactory) docs.
   
-## <a name="make-reader"></a>make-reader
-`([x opts])`
-
-Creates an `IReader`. See also `IOFactory` docs.
-  
-## <a name="make-writer"></a>make-writer
+### <a name="make-reader"></a>make-reader
 `([x opts])`
 
-Creates an `IWriter`. See also `IOFactory` docs.
+Creates an [`IReader`](planck-core.html#IReader). See also [`IOFactory`](#IOFactory) docs.
   
-## <a name="output-stream"></a>output-stream
+### <a name="make-writer"></a>make-writer
+`([x opts])`
+
+Creates an `IWriter`. See also [`IOFactory`](#IOFactory) docs.
+  
+### <a name="output-stream"></a>output-stream
 `([x & opts])`
 
-Attempts to coerce its argument into an open `IOutputStream`.
+Attempts to coerce its argument into an open [`IOutputStream`](planck-core.html#IOutputStream).
   
-## <a name="reader"></a>reader
+### <a name="reader"></a>reader
 `([x & opts])`
 
-Attempts to coerce its argument into an open `IBufferedReader`.
+Attempts to coerce its argument into an open [`IBufferedReader`](planck-core.html#IBufferedReader).
   
-## <a name="writer"></a>writer
+### <a name="writer"></a>writer
 `([x & opts])`
 
 Attempts to coerce its argument into an open `IWriter`.

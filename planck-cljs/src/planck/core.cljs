@@ -34,7 +34,7 @@
   :args (s/cat :exit-value integer?))
 
 (defprotocol IClosable
-  (-close [this]))
+  (-close [this] "Closes this entity."))
 
 (defprotocol IReader
   "Protocol for reading."
@@ -126,7 +126,7 @@
     (raw-close)))
 
 (defonce
-  ^{:doc     "A planck.io/IReader representing standard input for read operations."
+  ^{:doc     "An IReader representing standard input for read operations."
     :dynamic true}
   *in*
   (let [closed (atom false)]
@@ -165,7 +165,7 @@
   (-> js/PLANCK_INITIAL_COMMAND_LINE_ARGS js->clj seq))
 
 (defn read-line
-  "Reads the next line from the current value of planck.io/*in*"
+  "Reads the next line from the current value of *in*"
   []
   (-read-line *in*))
 
