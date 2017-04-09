@@ -256,7 +256,10 @@
             (recur (-read r))))))))
 
 (s/fdef slurp
-  :args (s/cat :f (s/or :string string? :file file?) :opts (s/* any?))
+  :args (s/cat :f (s/or :string string?
+                        :file file?
+                        :uri #(instance? Uri %))
+               :opts (s/* any?))
   :ret string?)
 
 (defn spit
@@ -267,7 +270,10 @@
     (-write w (str content))))
 
 (s/fdef spit
-  :args (s/cat :f (s/or :string string? :file file?) :content any? :opts (s/* any?)))
+  :args (s/cat :f (s/or :string string?
+                        :file file?
+                        :uri #(instance? Uri %))
+               :content any? :opts (s/* any?)))
 
 (defn eval
   "Evaluates the form data structure (not text!) and returns the result."

@@ -12,11 +12,6 @@
   Object
   (toString [_] path))
 
-(defn- uri?
-  "Returns true iff x is a Uri."
-  [x]
-  (instance? Uri x))
-
 (defn build-uri
   "Builds a URI"
   [scheme server-name server-port uri query-string]
@@ -33,7 +28,7 @@
           :server-port (s/nilable (s/or :integer integer? :string string?))
           :uri (s/nilable string?)
           :query-string (s/nilable string?))
-  :ret uri?)
+  :ret #(instance? Uri %))
 
 (defn- has-scheme?
   [uri scheme]
@@ -356,7 +351,7 @@
 
 (s/fdef resource
   :args (s/cat :n string?)
-  :ret (s/nilable uri?))
+  :ret (s/nilable #(instance? Uri %)))
 
 ;; These have been moved
 (def ^:deprecated read-line planck.core/read-line)
