@@ -34,6 +34,7 @@
   :args (s/cat :exit-value integer?))
 
 (defprotocol IClosable
+  "Protocol for closing entities."
   (-close [this] "Closes this entity."))
 
 (defprotocol IReader
@@ -202,6 +203,13 @@
   (fn [_]
     (throw (js/Error. "No *as-file-fn* fn set."))))
 
+(defonce
+  ^{:dynamic true
+    :private true}
+  *file?-fn*
+  (fn [_]
+    (throw (js/Error. "No *file?-fn* fn set."))))
+
 (defn file-seq
   "A tree seq on files"
   [dir]
@@ -211,8 +219,12 @@
               (js->clj (js/PLANCK_LIST_FILES (:path d)))))
     (*as-file-fn* dir)))
 
+(defn- file?
+  [x]
+  (*file?-fn* x))
+
 (s/fdef file-seq
-  :args (s/cat :dir :planck.core/coercible-file?)
+  :args (s/cat :dir (s/or :string string? :file file?))
   :ret? seq?)
 
 (defonce
@@ -243,7 +255,7 @@
             (recur (-read r))))))))
 
 (s/fdef slurp
-  :args (s/cat :f :planck.io/coercible-file? :opts (s/* any?))
+  :args (s/cat :f (s/or :string string? :file file?) :opts (s/* any?))
   :ret string?)
 
 (defn spit
@@ -254,7 +266,7 @@
     (-write w (str content))))
 
 (s/fdef spit
-  :args (s/cat :f :planck.io/coercible-file? :content any? :opts (s/* any?)))
+  :args (s/cat :f (s/or :string string? :file file?) :content any? :opts (s/* any?)))
 
 (defn eval
   "Evaluates the form data structure (not text!) and returns the result."

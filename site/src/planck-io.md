@@ -69,13 +69,11 @@ _Protocol_
 
   `make-input-stream`<br/>
   `([x opts])`<br/>
-  Creates an `IInputStream`. See also `IOFactory` docs.
+  Creates an [`IInputStream`](planck-core.html#IInputStream). See also `IOFactory` docs.
 
   `make-output-stream`<br/>
   `([x opts])`<br/>
-  Creates an `IOutputStream`. See also `IOFactory` docs.
- 
-Attempts to coerce its argument into an open `IInputStream`.
+  Creates an [`IOutputStream`](planck-core.html#IOutputStream). See also `IOFactory` docs.
 
 ## Types
 
@@ -105,7 +103,7 @@ Coerce argument to a `goog.Uri`.
 Delete file `f`.
 
 Spec<br/>
- _args_: `(cat :f (s/or :string string? :file file?))`<br/>
+ _args_: `(cat :f (or :string string? :file file?))`<br/>
  
 ### <a name=""></a>directory?
 `([dir])`
@@ -113,7 +111,7 @@ Spec<br/>
 Checks if `dir` is a directory.
 
 Spec<br/>
- _args_: `(cat :dir (s/or :string string? :file file?))`<br/>
+ _args_: `(cat :dir (or :string string? :file file?))`<br/>
  _ret_: `boolean?`<br/>
  
 ### <a name="file"></a>file
@@ -142,11 +140,13 @@ Spec<br/>
 Returns a map containing the attributes of the item at a given `path`.
 
 Spec
- _args_: `(cat :path (s/or :string string? :file file?))`<br/>
+ _args_: `(cat :path (or :string string? :file file?))`<br/>
  _ret_: `map?`
  
 ### <a name="input-stream"></a>input-stream
 `([x & opts])`
+
+Attempts to coerce its argument into an open [`IInputStream`](planck-core.html#IInputStream).
 
 ### <a name="make-input-stream"></a>make-input-stream
 `([x opts])`

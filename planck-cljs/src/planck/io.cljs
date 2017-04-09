@@ -260,3 +260,4 @@
 (set! planck.core/*reader-fn* reader)
 (set! planck.core/*writer-fn* writer)
 (set! planck.core/*as-file-fn* as-file)
+(set! planck.core/*file?-fn* file?)

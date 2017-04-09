@@ -45,6 +45,8 @@ Protocol for reading line-based content.
 ### <a name="IClosable"></a>IClosable
 _Protocol_
 
+Protocol for closing entities.
+
   `-close`<br/>
   `([this])`<br/>
   Closes this entity.
@@ -120,7 +122,7 @@ Spec<br/>
 A tree seq on files
 
 Spec<br/>
- _args_: `(cat :dir ::coercible-file?)`
+ _args_: `(cat :dir (or :string string? :file file?))`
 
 ### <a name="init-empty-state"></a>init-empty-state
 `([state])`
@@ -203,17 +205,17 @@ Spec<br/>
   See [`planck.io/reader`](planck-io.html#reader) for a complete list of supported arguments.
 
 Spec<br/>
- _args_: `(cat :f :planck.io/coercible-file? :opts (* any?))`<br/>
+ _args_: `(cat :f (or :string string? :file file?) :opts (* any?))`<br/>
  ret: `string?`
 
 ### <a name="spit"></a>spit
 `([f content & opts])`
 
-  Opposite of `slurp`.  Opens `f` with `writer`, writes content, then
+  Opposite of `slurp`.  Opens `f` with [`writer`](planck-io.html#writer), writes content, then
   closes `f`. Options passed to [`planck.io/writer`](planck-io.html#writer).
 
 Spec<br/>
- `args`: `(cat :f :planck.io/coercible-file? :content any? :opts (* any?))`
+ `args`: `(cat :f (or :string string? :file file?) :content any? :opts (* any?))`
 
 ### <a name="with-open"></a>with-open
 `([bindings & body])`
