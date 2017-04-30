@@ -1117,7 +1117,9 @@ connection_data_arrived_return_t* socket_connetion_data_arrived(char *data, int 
     // TODO what if we need bytes instead of dealing with an encoding?
     args[1] = JSValueMakeString(ctx, JSStringCreateWithUTF8CString(data));
 
+    acquire_eval_lock();
     JSObjectCallAsFunction(ctx, data_arrived_state->data_arrived_cb, NULL, 2, args, NULL);
+    release_eval_lock();
 
     connection_data_arrived_return_t* connection_data_arrived_return = malloc(sizeof(connection_data_arrived_return_t));
 
@@ -1138,7 +1140,9 @@ accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* stat
     JSValueRef args[1];
     args[0] = JSValueMakeNumber(ctx, sock);
 
+    acquire_eval_lock();
     JSValueRef data_arrived_cb_ref = JSObjectCallAsFunction(ctx, socket_state->accept_cb, NULL, 1, args, NULL);
+    release_eval_lock();
 
     data_arrived_state_t* data_arrived_state = malloc(sizeof(data_arrived_state_t));
     data_arrived_state->data_arrived_cb = JSValueToObject(ctx, data_arrived_cb_ref, NULL);
