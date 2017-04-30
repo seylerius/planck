@@ -9,7 +9,7 @@ typedef struct accepted_connection_cb_return {
     void* state;
 } accepted_connection_cb_return_t;
 
-typedef accepted_connection_cb_return_t* (*accepted_connection_cb_t)(int);
+typedef accepted_connection_cb_return_t* (*accepted_connection_cb_t)(int sock, void* state);
 
 typedef struct connection_data_arrived_return {
     int err;
@@ -24,6 +24,7 @@ typedef struct socket_accept_data {
     listen_successful_cb_t listen_successful_cb;
     accepted_connection_cb_t accepted_connection_cb;
     connection_data_arrived_cb_t connection_data_arrived_cb;
+    void* state;
 } socket_accept_data_t;
 
 int write_to_socket(int fd, const char *text);

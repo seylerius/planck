@@ -116,3 +116,6 @@ JSValueRef function_set_timeout(JSContextRef ctx, JSObjectRef function, JSObject
 
 JSValueRef function_high_res_timer(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                    size_t argc, const JSValueRef args[], JSValueRef *exception);
+
+JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                  size_t argc, const JSValueRef args[], JSValueRef *exception);

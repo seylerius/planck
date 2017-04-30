@@ -467,6 +467,8 @@ void *do_engine_init(void *data) {
 
     register_global_function(ctx, "PLANCK_HIGH_RES_TIMER", function_high_res_timer);
 
+    register_global_function(ctx, "PLANCK_SOCKET_LISTEN", function_socket_listen);
+
     display_launch_timing("register fns");
 
     // Monkey patch cljs.core/system-time to use Planck's high-res timer

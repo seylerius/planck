@@ -9,6 +9,7 @@
 #include <grp.h>
 #include <dirent.h>
 #include <limits.h>
+#include <pthread.h>
 
 #include <JavaScriptCore/JavaScript.h>
 
@@ -23,6 +24,7 @@
 #include "engine.h"
 #include "repl.h"
 #include "clock.h"
+#include "sockets.h"
 
 #define CONSOLE_LOG_BUF_SIZE 1000
 char console_log_buf[CONSOLE_LOG_BUF_SIZE];
@@ -1100,4 +1102,76 @@ JSValueRef function_high_res_timer(JSContextRef ctx, JSObjectRef function, JSObj
 
     return JSValueMakeNumber(ctx, 1e-6 * system_time());
 
+}
+
+typedef struct socket_state {
+    JSObjectRef accept_cb;
+    JSObjectRef data_arrived_cb;
+} socket_state_t;
+
+connection_data_arrived_return_t* socket_connetion_data_arrived(char *data, int sock, void *state) {
+
+    socket_state_t* socket_state = state;
+
+    JSValueRef args[2];
+    args[0] = JSValueMakeNumber(ctx, sock);
+    // TODO what if we need bytes instead of dealing with an encoding?
+    args[1] = JSValueMakeString(ctx, JSStringCreateWithUTF8CString(data));
+
+    JSObjectCallAsFunction(ctx, socket_state->data_arrived_cb, NULL, 2, args, NULL);
+
+    connection_data_arrived_return_t* connection_data_arrived_return = malloc(sizeof(connection_data_arrived_return_t));
+
+    connection_data_arrived_return->err = 0;
+    connection_data_arrived_return->close = false;
+
+    return connection_data_arrived_return;
+}
+
+accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* state) {
+
+    socket_state_t* socket_state = state;
+
+    JSValueRef args[1];
+    args[0] = JSValueMakeNumber(ctx, sock);
+
+    JSObjectCallAsFunction(ctx, socket_state->accept_cb, NULL, 1, args, NULL);
+
+    accepted_connection_cb_return_t* accepted_connection_cb_return = malloc(sizeof(accepted_connection_cb_return_t));
+
+    accepted_connection_cb_return->err = 0;
+    accepted_connection_cb_return->state = state;
+
+    return accepted_connection_cb_return;
+}
+
+JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                  size_t argc, const JSValueRef args[], JSValueRef *exception) {
+    if (argc == 3
+        && JSValueGetType(ctx, args[0]) == kJSTypeNumber
+        && JSValueGetType(ctx, args[1]) == kJSTypeObject
+        && JSValueGetType(ctx, args[2]) == kJSTypeObject) {
+
+        int port = (int) JSValueToNumber(ctx, args[0], NULL);
+
+        // TODO sort out how all is freed and unprotected
+
+        socket_state_t* socket_state = malloc(sizeof(socket_state_t));
+        socket_state->accept_cb = JSValueToObject(ctx, args[1], NULL);
+        socket_state->data_arrived_cb = JSValueToObject(ctx, args[2], NULL);;
+        JSValueProtect(ctx, args[1]);
+        JSValueProtect(ctx, args[2]);
+
+        socket_accept_data_t* socket_accept_data = malloc(sizeof(socket_accept_data_t));
+        socket_accept_data->host = NULL;
+        socket_accept_data->port = port;
+        socket_accept_data->listen_successful_cb = NULL;
+        socket_accept_data->accepted_connection_cb = accepted_socket_connection;
+        socket_accept_data->connection_data_arrived_cb = socket_connetion_data_arrived;
+        socket_accept_data->state = socket_state;
+
+        pthread_t thread;
+        pthread_create(&thread, NULL, accept_connections, socket_accept_data);
+    }
+    return JSValueMakeNull(ctx);
 }

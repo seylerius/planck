@@ -47,7 +47,8 @@ void *connection_handler(void *data) {
 
     accepted_connection_cb_return_t* accepted_connection_cb_return = NULL;
     if (connection_handler_data->socket_accept_data->accepted_connection_cb) {
-        accepted_connection_cb_return = connection_handler_data->socket_accept_data->accepted_connection_cb(connection_handler_data->sock);
+        accepted_connection_cb_return = connection_handler_data->socket_accept_data->accepted_connection_cb(
+                connection_handler_data->sock, connection_handler_data->socket_accept_data->state);
     }
 
     int err = 0;

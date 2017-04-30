@@ -487,7 +487,7 @@ connection_data_arrived_return_t* socket_repl_data_arrived(char *data, int sock,
     return connection_data_arrived_return;
 }
 
-accepted_connection_cb_return_t* accepted_socket_repl_connection(int sock) {
+accepted_connection_cb_return_t* accepted_socket_repl_connection(int sock, void* state) {
     repl_t *repl = make_repl();
     repl->current_prompt = form_prompt(repl, false);
     repl->session_id = ++session_id_counter;
@@ -546,7 +546,9 @@ int run_repl() {
                                                config.socket_repl_port,
                                                socket_repl_listen_successful_cb,
                                                accepted_socket_repl_connection,
-                                               socket_repl_data_arrived};
+                                               socket_repl_data_arrived,
+                                               NULL};
+
     if (config.socket_repl_port) {
         block_until_engine_ready();
 
