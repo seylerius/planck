@@ -1104,21 +1104,20 @@ JSValueRef function_high_res_timer(JSContextRef ctx, JSObjectRef function, JSObj
 
 }
 
-typedef struct socket_state {
-    JSObjectRef accept_cb;
+typedef struct data_arrived_state {
     JSObjectRef data_arrived_cb;
-} socket_state_t;
+} data_arrived_state_t;
 
 connection_data_arrived_return_t* socket_connetion_data_arrived(char *data, int sock, void *state) {
 
-    socket_state_t* socket_state = state;
+    data_arrived_state_t* data_arrived_state = state;
 
     JSValueRef args[2];
     args[0] = JSValueMakeNumber(ctx, sock);
     // TODO what if we need bytes instead of dealing with an encoding?
     args[1] = JSValueMakeString(ctx, JSStringCreateWithUTF8CString(data));
 
-    JSObjectCallAsFunction(ctx, socket_state->data_arrived_cb, NULL, 2, args, NULL);
+    JSObjectCallAsFunction(ctx, data_arrived_state->data_arrived_cb, NULL, 2, args, NULL);
 
     connection_data_arrived_return_t* connection_data_arrived_return = malloc(sizeof(connection_data_arrived_return_t));
 
@@ -1128,39 +1127,44 @@ connection_data_arrived_return_t* socket_connetion_data_arrived(char *data, int 
     return connection_data_arrived_return;
 }
 
+typedef struct accept_state {
+    JSObjectRef accept_cb;
+} accept_state_t;
+
 accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* state) {
 
-    socket_state_t* socket_state = state;
+    accept_state_t* socket_state = state;
 
     JSValueRef args[1];
     args[0] = JSValueMakeNumber(ctx, sock);
 
-    JSObjectCallAsFunction(ctx, socket_state->accept_cb, NULL, 1, args, NULL);
+    JSValueRef data_arrived_cb_ref = JSObjectCallAsFunction(ctx, socket_state->accept_cb, NULL, 1, args, NULL);
+
+    data_arrived_state_t* data_arrived_state = malloc(sizeof(data_arrived_state_t));
+    data_arrived_state->data_arrived_cb = JSValueToObject(ctx, data_arrived_cb_ref, NULL);
+    JSValueProtect(ctx, data_arrived_cb_ref);
 
     accepted_connection_cb_return_t* accepted_connection_cb_return = malloc(sizeof(accepted_connection_cb_return_t));
 
     accepted_connection_cb_return->err = 0;
-    accepted_connection_cb_return->state = state;
+    accepted_connection_cb_return->state = data_arrived_state;
 
     return accepted_connection_cb_return;
 }
 
 JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                   size_t argc, const JSValueRef args[], JSValueRef *exception) {
-    if (argc == 3
+    if (argc == 2
         && JSValueGetType(ctx, args[0]) == kJSTypeNumber
-        && JSValueGetType(ctx, args[1]) == kJSTypeObject
-        && JSValueGetType(ctx, args[2]) == kJSTypeObject) {
+        && JSValueGetType(ctx, args[1]) == kJSTypeObject) {
 
         int port = (int) JSValueToNumber(ctx, args[0], NULL);
 
         // TODO sort out how all is freed and unprotected
 
-        socket_state_t* socket_state = malloc(sizeof(socket_state_t));
-        socket_state->accept_cb = JSValueToObject(ctx, args[1], NULL);
-        socket_state->data_arrived_cb = JSValueToObject(ctx, args[2], NULL);;
+        accept_state_t* accept_state = malloc(sizeof(accept_state_t));
+        accept_state->accept_cb = JSValueToObject(ctx, args[1], NULL);
         JSValueProtect(ctx, args[1]);
-        JSValueProtect(ctx, args[2]);
 
         socket_accept_data_t* socket_accept_data = malloc(sizeof(socket_accept_data_t));
         socket_accept_data->host = NULL;
@@ -1168,10 +1172,23 @@ JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObje
         socket_accept_data->listen_successful_cb = NULL;
         socket_accept_data->accepted_connection_cb = accepted_socket_connection;
         socket_accept_data->connection_data_arrived_cb = socket_connetion_data_arrived;
-        socket_accept_data->state = socket_state;
+        socket_accept_data->state = accept_state;
 
         pthread_t thread;
         pthread_create(&thread, NULL, accept_connections, socket_accept_data);
+    }
+    return JSValueMakeNull(ctx);
+}
+
+JSValueRef function_socket_write(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                 size_t argc, const JSValueRef args[], JSValueRef *exception) {
+    if (argc == 2
+        && JSValueGetType(ctx, args[0]) == kJSTypeNumber
+        && JSValueGetType(ctx, args[1]) == kJSTypeString) {
+
+        int sock = (int) JSValueToNumber(ctx, args[0], NULL);
+
+        write_to_socket(sock, value_to_c_string(ctx, args[1]));
     }
     return JSValueMakeNull(ctx);
 }
