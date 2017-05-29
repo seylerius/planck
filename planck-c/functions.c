@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <limits.h>
 #include <pthread.h>
+#include <errno.h>
 
 #include <JavaScriptCore/JavaScript.h>
 
