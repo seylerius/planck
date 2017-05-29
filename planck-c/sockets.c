@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include "sockets.h"
 #include "engine.h"
@@ -88,10 +89,9 @@ void *connection_handler(void *data) {
 
 int bind_and_listen(socket_accept_data_t* socket_accept_data) {
 
-    int socket_desc;
     struct sockaddr_in server;
 
-    socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+    int socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
         return socket_desc;
     }
@@ -144,4 +144,33 @@ void *accept_connections(void *data) {
 
 int close_socket(int fd) {
     return shutdown(fd, SHUT_RDWR);
+}
+
+int open_socket(const char *host, int port) {
+
+    int socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_desc == -1) {
+        return socket_desc;
+    }
+
+    struct hostent *server = gethostbyname(host);
+    if (server == NULL) {
+        // no such host
+        return -1;
+    }
+
+    struct sockaddr_in serv_addr;
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr,
+          (char *)&serv_addr.sin_addr.s_addr,
+          server->h_length);
+    serv_addr.sin_port = htons(port);
+
+    int err = connect(socket_desc, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    if (err == -1) {
+        return err;
+    } else {
+        return socket_desc;
+    }
 }

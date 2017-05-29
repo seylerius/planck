@@ -467,6 +467,7 @@ void *do_engine_init(void *data) {
 
     register_global_function(ctx, "PLANCK_HIGH_RES_TIMER", function_high_res_timer);
 
+    register_global_function(ctx, "PLANCK_SOCKET_OPEN", function_socket_open);
     register_global_function(ctx, "PLANCK_SOCKET_LISTEN", function_socket_listen);
     register_global_function(ctx, "PLANCK_SOCKET_WRITE", function_socket_write);
     register_global_function(ctx, "PLANCK_SOCKET_CLOSE", function_socket_close);

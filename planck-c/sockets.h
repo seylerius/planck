@@ -34,3 +34,5 @@ int bind_and_listen(socket_accept_data_t* socket_accept_data);
 void *accept_connections(void *data);
 
 int close_socket(int fd);
+
+int open_socket(const char *host, int port);

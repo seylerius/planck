@@ -1157,6 +1157,28 @@ accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* stat
     return accepted_connection_cb_return;
 }
 
+JSValueRef function_socket_open(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                size_t argc, const JSValueRef args[], JSValueRef *exception) {
+    if (argc == 2
+        && JSValueGetType(ctx, args[0]) == kJSTypeString
+        && JSValueGetType(ctx, args[1]) == kJSTypeNumber) {
+
+        char* host = value_to_c_string(ctx, args[0]);
+        int port = (int) JSValueToNumber(ctx, args[1], NULL);
+
+        int sock = open_socket(host, port);
+
+        if (sock == -1) {
+            JSValueRef arguments[1];
+            arguments[0] = c_string_to_value(ctx, strerror(errno));
+            *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
+        } else {
+            return JSValueMakeNumber(ctx, sock);
+        }
+    }
+    return JSValueMakeNull(ctx);
+}
+
 JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                   size_t argc, const JSValueRef args[], JSValueRef *exception) {
     if (argc == 2
@@ -1164,7 +1186,7 @@ JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObje
         && JSValueGetType(ctx, args[1]) == kJSTypeObject) {
 
         int port = (int) JSValueToNumber(ctx, args[0], NULL);
-        
+
         accept_state_t* accept_state = malloc(sizeof(accept_state_t));
         accept_state->accept_cb = JSValueToObject(ctx, args[1], NULL);
         JSValueProtect(ctx, args[1]);
