@@ -1164,9 +1164,7 @@ JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObje
         && JSValueGetType(ctx, args[1]) == kJSTypeObject) {
 
         int port = (int) JSValueToNumber(ctx, args[0], NULL);
-
-        // TODO sort out how all is freed and unprotected
-
+        
         accept_state_t* accept_state = malloc(sizeof(accept_state_t));
         accept_state->accept_cb = JSValueToObject(ctx, args[1], NULL);
         JSValueProtect(ctx, args[1]);
