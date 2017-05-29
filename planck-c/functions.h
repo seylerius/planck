@@ -122,3 +122,6 @@ JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObje
 
 JSValueRef function_socket_write(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                  size_t argc, const JSValueRef args[], JSValueRef *exception);
+
+JSValueRef function_socket_close(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                 size_t argc, const JSValueRef args[], JSValueRef *exception);

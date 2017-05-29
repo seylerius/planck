@@ -1192,7 +1192,31 @@ JSValueRef function_socket_write(JSContextRef ctx, JSObjectRef function, JSObjec
 
         int sock = (int) JSValueToNumber(ctx, args[0], NULL);
 
-        write_to_socket(sock, value_to_c_string(ctx, args[1]));
+        int rv = write_to_socket(sock, value_to_c_string(ctx, args[1]));
+
+        if (rv == -1) {
+            JSValueRef arguments[1];
+            arguments[0] = c_string_to_value(ctx, strerror(errno));
+            *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
+        }
+    }
+    return JSValueMakeNull(ctx);
+}
+
+JSValueRef function_socket_close(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                 size_t argc, const JSValueRef args[], JSValueRef *exception) {
+    if (argc == 1
+        && JSValueGetType(ctx, args[0]) == kJSTypeNumber) {
+
+        int sock = (int) JSValueToNumber(ctx, args[0], NULL);
+
+        int rv = close_socket(sock);
+
+        if (rv == -1) {
+            JSValueRef arguments[1];
+            arguments[0] = c_string_to_value(ctx, strerror(errno));
+            *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
+        }
     }
     return JSValueMakeNull(ctx);
 }

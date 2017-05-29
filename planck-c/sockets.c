@@ -136,3 +136,7 @@ void *accept_connections(void *data) {
 
     return NULL;
 }
+
+int close_socket(int fd) {
+    return shutdown(fd, SHUT_RDWR);
+}

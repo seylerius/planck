@@ -30,3 +30,5 @@ typedef struct socket_accept_data {
 int write_to_socket(int fd, const char *text);
 
 void *accept_connections(void *data);
+
+int close_socket(int fd);
