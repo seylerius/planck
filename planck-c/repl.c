@@ -547,6 +547,7 @@ int run_repl() {
                                                socket_repl_listen_successful_cb,
                                                accepted_socket_repl_connection,
                                                socket_repl_data_arrived,
+                                               0,
                                                NULL};
 
     if (config.socket_repl_port) {
@@ -558,8 +559,13 @@ int run_repl() {
             set_print_sender(&linenoisePrintNow);
         }
 
-        pthread_t thread;
-        pthread_create(&thread, NULL, accept_connections, &socket_accept_data);
+        int err = bind_and_listen(&socket_accept_data);
+        if (err == -1) {
+            engine_perror("Failed to set up socket REPL");
+        } else {
+            pthread_t thread;
+            pthread_create(&thread, NULL, accept_connections, &socket_accept_data);
+        }
     }
 
     run_cmdline_loop(repl);

@@ -24,11 +24,13 @@ typedef struct socket_accept_data {
     listen_successful_cb_t listen_successful_cb;
     accepted_connection_cb_t accepted_connection_cb;
     connection_data_arrived_cb_t connection_data_arrived_cb;
+    int socket_desc;
     void* state;
 } socket_accept_data_t;
 
 int write_to_socket(int fd, const char *text);
 
+int bind_and_listen(socket_accept_data_t* socket_accept_data);
 void *accept_connections(void *data);
 
 int close_socket(int fd);

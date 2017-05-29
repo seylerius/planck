@@ -86,36 +86,41 @@ void *connection_handler(void *data) {
     return NULL;
 }
 
-void *accept_connections(void *data) {
+int bind_and_listen(socket_accept_data_t* socket_accept_data) {
 
-    socket_accept_data_t* socket_accept_data = (socket_accept_data_t*)data;
-
-    int socket_desc, new_socket, c;
-    struct sockaddr_in server, client;
+    int socket_desc;
+    struct sockaddr_in server;
 
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
-        engine_perror("Could not create listen socket");
-        return NULL;
+        return socket_desc;
     }
+    socket_accept_data->socket_desc = socket_desc;
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(socket_accept_data->port);
 
-    if (bind(socket_desc, (struct sockaddr *) &server, sizeof(server)) < 0) {
-        engine_perror("Socket bind failed");
-        return NULL;
+    int err = bind(socket_desc, (struct sockaddr *) &server, sizeof(server));
+    if (err == -1) {
+        return err;
     }
 
-    listen(socket_desc, 3);
+    return listen(socket_desc, 3);
+}
+
+void *accept_connections(void *data) {
+
+    socket_accept_data_t* socket_accept_data = (socket_accept_data_t*)data;
 
     if (socket_accept_data->listen_successful_cb) {
         socket_accept_data->listen_successful_cb();
     }
 
-    c = sizeof(struct sockaddr_in);
-    while ((new_socket = accept(socket_desc, (struct sockaddr *) &client, (socklen_t *) &c))) {
+    int c = sizeof(struct sockaddr_in);
+    int new_socket;
+    struct sockaddr_in client;
+    while ((new_socket = accept(socket_accept_data->socket_desc, (struct sockaddr *) &client, (socklen_t *) &c))) {
 
         pthread_t handler_thread;
 

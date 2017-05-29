@@ -1179,8 +1179,15 @@ JSValueRef function_socket_listen(JSContextRef ctx, JSObjectRef function, JSObje
         socket_accept_data->connection_data_arrived_cb = socket_connetion_data_arrived;
         socket_accept_data->state = accept_state;
 
-        pthread_t thread;
-        pthread_create(&thread, NULL, accept_connections, socket_accept_data);
+        int err = bind_and_listen(socket_accept_data);
+        if (err == -1) {
+            JSValueRef arguments[1];
+            arguments[0] = c_string_to_value(ctx, strerror(errno));
+            *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
+        } else {
+            pthread_t thread;
+            pthread_create(&thread, NULL, accept_connections, socket_accept_data);
+        }
     }
     return JSValueMakeNull(ctx);
 }
@@ -1193,9 +1200,9 @@ JSValueRef function_socket_write(JSContextRef ctx, JSObjectRef function, JSObjec
 
         int sock = (int) JSValueToNumber(ctx, args[0], NULL);
 
-        int rv = write_to_socket(sock, value_to_c_string(ctx, args[1]));
+        int err = write_to_socket(sock, value_to_c_string(ctx, args[1]));
 
-        if (rv == -1) {
+        if (err == -1) {
             JSValueRef arguments[1];
             arguments[0] = c_string_to_value(ctx, strerror(errno));
             *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
@@ -1211,9 +1218,9 @@ JSValueRef function_socket_close(JSContextRef ctx, JSObjectRef function, JSObjec
 
         int sock = (int) JSValueToNumber(ctx, args[0], NULL);
 
-        int rv = close_socket(sock);
+        int err = close_socket(sock);
 
-        if (rv == -1) {
+        if (err == -1) {
             JSValueRef arguments[1];
             arguments[0] = c_string_to_value(ctx, strerror(errno));
             *exception =JSObjectMakeError(ctx, 1, arguments, NULL);
