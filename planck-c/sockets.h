@@ -35,4 +35,4 @@ void *accept_connections(void *data);
 
 int close_socket(int fd);
 
-int open_socket(const char *host, int port);
+int open_socket(const char *host, int port, connection_data_arrived_cb_t connection_data_arrived_cb, void* data_arrived_state);

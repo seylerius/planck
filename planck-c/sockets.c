@@ -146,7 +146,32 @@ int close_socket(int fd) {
     return shutdown(fd, SHUT_RDWR);
 }
 
-int open_socket(const char *host, int port) {
+typedef struct read_inbound_socket_info {
+    int socket_desc;
+    connection_data_arrived_cb_t connection_data_arrived_cb;
+    void* data_arrived_state;
+} read_inbound_socket_info_t;
+
+void* read_inbound_socket_data(void *data) {
+
+    read_inbound_socket_info_t* read_inbound_socket_info = data;
+
+    ssize_t read_size;
+    char receive_buffer[4096];
+
+    while ((read_size = recv(read_inbound_socket_info->socket_desc, receive_buffer, 4095, 0)) > 0) {
+        receive_buffer[read_size] = '\0';
+        connection_data_arrived_return_t* connection_data_arrived_return =read_inbound_socket_info->connection_data_arrived_cb(
+                receive_buffer, read_inbound_socket_info->socket_desc, read_inbound_socket_info->data_arrived_state);
+        free(connection_data_arrived_return);
+    }
+
+    free(read_inbound_socket_info);
+
+    return NULL;
+}
+
+int open_socket(const char *host, int port, connection_data_arrived_cb_t connection_data_arrived_cb, void* data_arrived_state) {
 
     int socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
@@ -171,6 +196,17 @@ int open_socket(const char *host, int port) {
     if (err == -1) {
         return err;
     } else {
+        read_inbound_socket_info_t* read_inbound_socket_info = malloc(sizeof(read_inbound_socket_info_t));
+        read_inbound_socket_info->socket_desc = socket_desc;
+        read_inbound_socket_info->connection_data_arrived_cb = connection_data_arrived_cb;
+        read_inbound_socket_info->data_arrived_state = data_arrived_state;
+
+        pthread_t reader_thread;
+
+        if (pthread_create(&reader_thread, NULL, read_inbound_socket_data, read_inbound_socket_info) < 0) {
+            engine_perror("could not create thread");
+            return -1;
+        }
         return socket_desc;
     }
 }

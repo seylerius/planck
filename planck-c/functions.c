@@ -1159,14 +1159,21 @@ accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* stat
 
 JSValueRef function_socket_open(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
                                 size_t argc, const JSValueRef args[], JSValueRef *exception) {
-    if (argc == 2
+    if (argc == 3
         && JSValueGetType(ctx, args[0]) == kJSTypeString
-        && JSValueGetType(ctx, args[1]) == kJSTypeNumber) {
+        && JSValueGetType(ctx, args[1]) == kJSTypeNumber
+        && JSValueGetType(ctx, args[2]) == kJSTypeObject) {
 
         char* host = value_to_c_string(ctx, args[0]);
         int port = (int) JSValueToNumber(ctx, args[1], NULL);
 
-        int sock = open_socket(host, port);
+        JSValueRef data_arrived_cb_ref = args[2];
+
+        data_arrived_state_t* data_arrived_state = malloc(sizeof(data_arrived_state_t));
+        data_arrived_state->data_arrived_cb = JSValueToObject(ctx, data_arrived_cb_ref, NULL);
+        JSValueProtect(ctx, data_arrived_cb_ref);
+
+        int sock = open_socket(host, port, socket_connetion_data_arrived, data_arrived_state);
 
         if (sock == -1) {
             JSValueRef arguments[1];
