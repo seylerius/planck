@@ -1157,8 +1157,8 @@ accepted_connection_cb_return_t* accepted_socket_connection(int sock, void* stat
     return accepted_connection_cb_return;
 }
 
-JSValueRef function_socket_open(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
-                                size_t argc, const JSValueRef args[], JSValueRef *exception) {
+JSValueRef function_socket_connect(JSContextRef ctx, JSObjectRef function, JSObjectRef thisObject,
+                                   size_t argc, JSValueRef const *args, JSValueRef *exception) {
     if (argc == 3
         && JSValueGetType(ctx, args[0]) == kJSTypeString
         && JSValueGetType(ctx, args[1]) == kJSTypeNumber
@@ -1173,7 +1173,7 @@ JSValueRef function_socket_open(JSContextRef ctx, JSObjectRef function, JSObject
         data_arrived_state->data_arrived_cb = JSValueToObject(ctx, data_arrived_cb_ref, NULL);
         JSValueProtect(ctx, data_arrived_cb_ref);
 
-        int sock = open_socket(host, port, socket_connetion_data_arrived, data_arrived_state);
+        int sock = connect_socket(host, port, socket_connetion_data_arrived, data_arrived_state);
 
         if (sock == -1) {
             JSValueRef arguments[1];

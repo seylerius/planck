@@ -171,7 +171,8 @@ void* read_inbound_socket_data(void *data) {
     return NULL;
 }
 
-int open_socket(const char *host, int port, connection_data_arrived_cb_t connection_data_arrived_cb, void* data_arrived_state) {
+int connect_socket(const char *host, int port, connection_data_arrived_cb_t connection_data_arrived_cb,
+                   void *data_arrived_state) {
 
     int socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
