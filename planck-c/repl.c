@@ -78,12 +78,30 @@ char *form_prompt(repl_t *repl, bool is_secondary) {
     return prompt;
 }
 
-char *get_input() {
+void display_prompt(char *prompt) {
+    if (prompt != NULL) {
+        fprintf(stdout, "%s", prompt);
+        fflush(stdout);
+    }
+}
+
+char *get_input(char* current_prompt) {
     char *line = NULL;
     size_t len = 0;
-    ssize_t n = getline(&line, &len, stdin);
-    if (n == -1) { // Ctrl-D
-        return NULL;
+    ssize_t n = 0;
+    bool displayed = false;
+
+    while ((n = getline(&line, &len, stdin)) == -1) {
+        if (len == 1) { // Ctrl-D
+            return NULL;
+        } else if (len == 0) {
+            if (displayed) {
+                return NULL;
+            } else {
+                display_prompt(current_prompt); // SIGCONT
+                displayed = true;
+            }
+        }
     }
     if (n > 0) {
         if (line[n - 1] == '\n') {
@@ -91,13 +109,6 @@ char *get_input() {
         }
     }
     return line;
-}
-
-void display_prompt(char *prompt) {
-    if (prompt != NULL) {
-        fprintf(stdout, "%s", prompt);
-        fflush(stdout);
-    }
 }
 
 bool is_whitespace(char *s) {
@@ -250,7 +261,7 @@ void run_cmdline_loop(repl_t *repl) {
 
         if (config.dumb_terminal) {
             display_prompt(repl->current_prompt);
-            input_line = get_input();
+            input_line = get_input(repl->current_prompt);
             if (input_line == NULL) { // Ctrl-D pressed
                 printf("\n");
                 break;
