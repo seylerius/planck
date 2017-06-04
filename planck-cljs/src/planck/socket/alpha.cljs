@@ -2,6 +2,7 @@
   "Planck socket functionality."
   (:require
    [cljs.spec.alpha :as s]
+   [planck.core]
    [planck.repl :as repl]))
 
 (defrecord Socket [descriptor]
@@ -39,19 +40,58 @@
   (fn [descriptor]
     (wrap-data-handler (accept-handler (->Socket descriptor)))))
 
+(defonce socket-readers (atom {}))
+
+(defrecord SocketReader [state-atom]
+  planck.core/IReader
+  (-read [this]
+    (let [current-state @state-atom]
+      (swap! state-atom assoc ::buffer "")
+      (if (and (= "" (::buffer current-state))
+               (::eof current-state))
+        (do
+          (swap! socket-readers dissoc (::socket current-state))
+          nil)
+        (::buffer current-state))))
+  planck.core/IBufferedReader
+  (-read-line [this]
+    ;; TODO need to make this read up to newline. Blocking may not be feasible...
+    (planck.core/-read this))
+  planck.core/IClosable
+  (-close [this]
+    nil))
+
 (defn connect
   "Connects a TCP socket to a remote host/port. The connected socket is
   returned. Data can be written to the socket using `write` and the socket can
   be closed using `close`.
 
-  A data-handler argument must be supplied, which is a function that accepts a
+  A data-handler argument may be supplied, which is a function that accepts a
   socket and a nillable data value. This data handler will be called when data
   arrives on the socket. When the socket is closed the data handler will be
-  called with a nil data value."
+  called with a nil data value.
+
+  Experimental: In order to use the resulting socket from a reader, pass nil
+  as the data-handler."
+  ([host port]
+   (connect host port nil nil))
   ([host port data-handler]
    (connect host port data-handler nil))
   ([host port data-handler opts]
-   (->Socket (js/PLANCK_SOCKET_CONNECT host port (wrap-data-handler data-handler)))))
+   (if (some? data-handler)
+     (->Socket (js/PLANCK_SOCKET_CONNECT host port (wrap-data-handler data-handler)))
+     (let [state-atom (atom {::buffer ""
+                             ::eof    false})
+           data-handler (fn [socket data]
+                          (if data
+                            (swap! state-atom update ::buffer str data)
+                            (do
+                              (swap! state-atom assoc ::socket socket)
+                              (swap! state-atom assoc ::eof true))))
+           reader (->SocketReader state-atom)
+           socket (->Socket (js/PLANCK_SOCKET_CONNECT host port (wrap-data-handler data-handler)))]
+       (swap! socket-readers assoc socket reader)
+       socket))))
 
 (s/fdef connect
   :args (s/cat :host ::host :port ::port :data-handler ::data-handler :opts (s/? ::opts))

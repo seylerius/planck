@@ -5,7 +5,8 @@
    [clojure.string :as string]
    [planck.core]
    [planck.http :as http]
-   [planck.repl :as repl])
+   [planck.repl :as repl]
+   [planck.socket.alpha :as socket])
   (:import
    (goog Uri)))
 
@@ -245,6 +246,18 @@
       (jar-uri? uri) (throw (ex-info "Can't write to jar URI" {:uri uri}))
       (bundled-uri? uri) (throw (ex-info "Can't write to bundled URI" {:uri uri}))
       :else (make-http-uri-writer uri opts)))
+
+  planck.socket.alpha/Socket
+  (make-reader [socket opts]
+    (get @socket/socket-readers socket))
+  (make-writer [socket opts]
+    (planck.core/->Writer
+      (fn [content]
+        (socket/write socket content)
+        nil)
+      (fn [])
+      (fn []
+        (socket/close socket))))
 
   default
   (make-reader [x _]
