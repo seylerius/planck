@@ -455,11 +455,17 @@ int main(int argc, char **argv) {
         }
         if (local_repo) {
             dependencies_classpath = calculate_dependencies_classpath(dependencies, local_repo);
-            init_classpath(dependencies_classpath);
+            if (classpath) {
+                classpath = str_concat(classpath, ":");
+                classpath = str_concat(classpath, dependencies_classpath);
+            } else {
+                classpath = dependencies_classpath;
+            }
         }
-    } else {
-        init_classpath(classpath);
     }
+
+    init_classpath(classpath);
+
 
     if (config.num_src_paths == 0) {
         char *classpath = getenv("PLANCK_CLASSPATH");
