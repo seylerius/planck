@@ -41,6 +41,13 @@ void usage(char *program_name) {
     printf("                             values\n");
     printf("    -c cp, --classpath=cp    Use colon-delimited cp for source directories and\n");
     printf("                             JARs. PLANCK_CLASSPATH env var may be used instead.\n");
+    printf("    -D dep, --dependencies dep  Use comma-separated list of dependencies to.\n");
+    printf("                                look for in the local Maven repository.\n");
+    printf("                                Dependencies should be specified in the form\n");
+    printf("                                SYM:VERSION (e.g.: foo/bar:1.2.3).\n");
+    printf("    -L path, --local-repo path  Path to the local Maven repository where Planck\n");
+    printf("                                will look for dependencies. Defaults to\n");
+    printf("                                ~/.m2/repository.\n");
     printf("    -K, --auto-cache         Create and use .planck_cache dir for cache\n");
     printf("    -k path, --cache=path    If dir exists at path, use it for cache\n");
     printf("    -q, --quiet              Quiet mode\n");
@@ -130,6 +137,36 @@ char *get_current_working_dir() {
         return ensure_trailing_slash(cwd);
     }
     return NULL;
+}
+
+char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
+
+    local_repo = "/Users/mfikes/.m2/repository";
+
+    char *paths[1024];
+    size_t ndx = 0;
+
+    char *saveptr;
+    char* dependency = strtok_r(dependencies, ",", &saveptr);
+    while (dependency != NULL) {
+        char* saveptr2;
+        char* sym = strtok_r(dependency, ":", &saveptr2);
+        char* version = strtok_r(NULL, ":", &saveptr2);
+
+        char* saveptr3;
+        char* group = strtok_r(sym, "/", &saveptr3);
+        char* artifact = strtok_r(NULL, "/", &saveptr3);
+
+        char path[PATH_MAX];
+        sprintf(path, "%s/%s/%s/%s/%s-%s.jar", local_repo, group, artifact, version, artifact, version);
+        paths[ndx++] = strdup(path);
+
+        dependency = strtok_r(NULL, ",", &saveptr);
+    }
+
+    // TODO join them all
+    //fprintf(stderr, "%s", paths[0]);
+    return paths[0];
 }
 
 void init_classpath(char *classpath) {
@@ -229,6 +266,10 @@ int main(int argc, char **argv) {
     config.socket_repl_port = 0;
     config.socket_repl_host = NULL;
 
+    char *classpath = NULL;
+    char *dependencies = NULL;
+    char *local_repo = NULL;
+
     struct option long_options[] = {
             {"help",          no_argument,       NULL, 'h'},
             {"version",       no_argument,       NULL, 'V'},
@@ -245,6 +286,8 @@ int main(int argc, char **argv) {
             {"socket-repl",   required_argument, NULL, 'n'},
             {"dumb-terminal", no_argument,       NULL, 'd'},
             {"classpath",     required_argument, NULL, 'c'},
+            {"dependencies",  required_argument, NULL, 'D'},
+            {"local-repo",    required_argument, NULL, 'L'},
             {"auto-cache",    no_argument,       NULL, 'K'},
             {"init",          required_argument, NULL, 'i'},
             {"main",          required_argument, NULL, 'm'},
@@ -259,7 +302,7 @@ int main(int argc, char **argv) {
     int opt, option_index;
     bool did_encounter_main_opt = false;
     while (!did_encounter_main_opt &&
-           (opt = getopt_long(argc, argv, "Xh?VS:lvrsak:je:t:n:dc:o:Ki:qm:", long_options, &option_index)) != -1) {
+           (opt = getopt_long(argc, argv, "Xh?VS:D:L:lvrsak:je:t:n:dc:o:Ki:qm:", long_options, &option_index)) != -1) {
         switch (opt) {
             case 'X':
                 init_launch_timing();
@@ -349,9 +392,15 @@ int main(int argc, char **argv) {
                 config.dumb_terminal = true;
                 break;
             case 'c': {
-                char *classpath = strdup(optarg);
-                init_classpath(classpath);
-
+                classpath = strdup(optarg);
+                break;
+            }
+            case 'D': {
+                dependencies = strdup(optarg);
+                break;
+            }
+            case 'L': {
+                local_repo = strdup(optarg);
                 break;
             }
             case 'o':
@@ -374,6 +423,14 @@ int main(int argc, char **argv) {
     }
 
     display_launch_timing("check cache path");
+
+    char* dependencies_classpath = NULL;
+    if (dependencies) {
+        dependencies_classpath = calculate_dependencies_classpath(dependencies, local_repo);
+        init_classpath(dependencies_classpath);
+    } else {
+        init_classpath(classpath);
+    }
 
     if (config.num_src_paths == 0) {
         char *classpath = getenv("PLANCK_CLASSPATH");
