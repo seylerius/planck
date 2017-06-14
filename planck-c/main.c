@@ -141,8 +141,6 @@ char *get_current_working_dir() {
 
 char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
 
-    local_repo = "/Users/mfikes/.m2/repository";
-
     char *paths[1024];
     size_t ndx = 0;
 
@@ -169,7 +167,6 @@ char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
 
         char path[PATH_MAX];
         sprintf(path, "%s/%s/%s/%s/%s-%s.jar", local_repo, group, artifact, version, artifact, version);
-        fprintf(stderr, "%s\n", path);
 
         paths[ndx++] = strdup(path);
 
@@ -188,7 +185,6 @@ char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
         }
     }
 
-    fprintf(stderr, "%s\n", result);
     return result;
 }
 
@@ -449,8 +445,17 @@ int main(int argc, char **argv) {
 
     char* dependencies_classpath = NULL;
     if (dependencies) {
-        dependencies_classpath = calculate_dependencies_classpath(dependencies, local_repo);
-        init_classpath(dependencies_classpath);
+        if (!local_repo) {
+            char *home = getenv("HOME");
+            if (home != NULL) {
+                local_repo = malloc(PATH_MAX);
+                sprintf(local_repo, "%s/.m2/repository", home);
+            }
+        }
+        if (local_repo) {
+            dependencies_classpath = calculate_dependencies_classpath(dependencies, local_repo);
+            init_classpath(dependencies_classpath);
+        }
     } else {
         init_classpath(classpath);
     }
