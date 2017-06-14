@@ -139,28 +139,28 @@ char *get_current_working_dir() {
     return NULL;
 }
 
-char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
+char *calculate_dependencies_classpath(char *dependencies, char *local_repo) {
 
     char *paths[1024];
     size_t ndx = 0;
 
     char *saveptr;
-    char* dependency = strtok_r(dependencies, ",", &saveptr);
+    char *dependency = strtok_r(dependencies, ",", &saveptr);
     while (dependency != NULL) {
-        char* saveptr2;
-        char* sym = strtok_r(dependency, ":", &saveptr2);
-        char* version = strtok_r(NULL, ":", &saveptr2);
+        char *saveptr2;
+        char *sym = strtok_r(dependency, ":", &saveptr2);
+        char *version = strtok_r(NULL, ":", &saveptr2);
 
-        char* saveptr3;
-        char* group = strtok_r(sym, "/", &saveptr3);
-        char* p = group;
+        char *saveptr3;
+        char *group = strtok_r(sym, "/", &saveptr3);
+        char *p = group;
         while (*p) {
             if (*p == '.') {
                 *p = '/';
             }
             p++;
         }
-        char* artifact = strtok_r(NULL, "/", &saveptr3);
+        char *artifact = strtok_r(NULL, "/", &saveptr3);
         if (artifact == NULL) {
             artifact = group;
         }
@@ -173,12 +173,12 @@ char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
         dependency = strtok_r(NULL, ",", &saveptr);
     }
 
-    char* result = "";
+    char *result = "";
 
     size_t n = 0;
     for (;;) {
         result = str_concat(result, paths[n]);
-        if (++n<ndx) {
+        if (++n < ndx) {
             result = str_concat(result, ":");
         } else {
             break;
@@ -443,7 +443,7 @@ int main(int argc, char **argv) {
 
     display_launch_timing("check cache path");
 
-    char* dependencies_classpath = NULL;
+    char *dependencies_classpath = NULL;
     if (dependencies) {
         if (!local_repo) {
             char *home = getenv("HOME");
