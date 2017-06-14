@@ -155,18 +155,41 @@ char* calculate_dependencies_classpath(char* dependencies, char* local_repo) {
 
         char* saveptr3;
         char* group = strtok_r(sym, "/", &saveptr3);
+        char* p = group;
+        while (*p) {
+            if (*p == '.') {
+                *p = '/';
+            }
+            p++;
+        }
         char* artifact = strtok_r(NULL, "/", &saveptr3);
+        if (artifact == NULL) {
+            artifact = group;
+        }
 
         char path[PATH_MAX];
         sprintf(path, "%s/%s/%s/%s/%s-%s.jar", local_repo, group, artifact, version, artifact, version);
+        fprintf(stderr, "%s\n", path);
+
         paths[ndx++] = strdup(path);
 
         dependency = strtok_r(NULL, ",", &saveptr);
     }
 
-    // TODO join them all
-    //fprintf(stderr, "%s", paths[0]);
-    return paths[0];
+    char* result = "";
+
+    size_t n = 0;
+    for (;;) {
+        result = str_concat(result, paths[n]);
+        if (++n<ndx) {
+            result = str_concat(result, ":");
+        } else {
+            break;
+        }
+    }
+
+    fprintf(stderr, "%s\n", result);
+    return result;
 }
 
 void init_classpath(char *classpath) {
